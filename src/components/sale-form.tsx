@@ -38,8 +38,8 @@ const emptyValues: SaleFormValues = {
 };
 
 const inputClass =
-  "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900";
-const labelClass = "block text-sm font-medium mb-1";
+  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
+const labelClass = "block text-sm font-medium mb-1 text-slate-700";
 
 export function SaleForm({
   mode,
@@ -112,13 +112,14 @@ export function SaleForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+    <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       {error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300" role="alert">
+        <p className="animate-fade-in rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
           {error}
         </p>
       )}
 
+      <div className="rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="passengerName">
@@ -308,7 +309,7 @@ export function SaleForm({
         </div>
       </div>
 
-      <div>
+      <div className="mt-4">
         <label className={labelClass} htmlFor="notes">
           Notes
         </label>
@@ -320,19 +321,20 @@ export function SaleForm({
           onChange={(e) => update("notes", e.target.value)}
         />
       </div>
+      </div>
 
       <div className="flex gap-3">
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-white dark:text-neutral-900"
+          className="rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-60"
         >
-          {submitting ? "Saving..." : mode === "create" ? "Save sale" : "Save changes"}
+          {submitting ? "Saving…" : mode === "create" ? "Save sale" : "Save changes"}
         </button>
         <button
           type="button"
           onClick={() => router.push("/sales")}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm dark:border-neutral-700"
+          className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50"
         >
           Cancel
         </button>

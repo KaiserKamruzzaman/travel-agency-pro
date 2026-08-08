@@ -43,10 +43,10 @@ export default async function ReportsPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold">Reports</h1>
-        <p className="text-sm text-neutral-500">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <div className="animate-fade-in-up mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Reports</h1>
+        <p className="text-sm text-slate-500">
           {formatDate(start)} – {formatDate(displayEnd)}
         </p>
       </div>
@@ -62,20 +62,20 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-        <SummaryCard label="Tickets sold" value={String(report.totals.tickets)} />
-        <SummaryCard label="Gross revenue" value={formatMoney(report.totals.revenue)} />
-        <SummaryCard label="Net profit" value={formatMoney(report.totals.profit)} />
-        <SummaryCard label="Avg. sale value" value={formatMoney(report.totals.avgSale)} />
-        <SummaryCard label="Top branch" value={report.topBranch?.label ?? "—"} />
+        <SummaryCard label="Tickets sold" value={String(report.totals.tickets)} accent="sky" />
+        <SummaryCard label="Gross revenue" value={formatMoney(report.totals.revenue)} accent="blue" />
+        <SummaryCard label="Net profit" value={formatMoney(report.totals.profit)} accent="emerald" />
+        <SummaryCard label="Avg. sale value" value={formatMoney(report.totals.avgSale)} accent="amber" />
+        <SummaryCard label="Top branch" value={report.topBranch?.label ?? "—"} accent="sky" />
       </div>
 
       <div className="mb-8">
         <ReportChart trend={report.trend} />
       </div>
 
-      <div className="mb-8 overflow-x-auto rounded-md border border-neutral-200 dark:border-neutral-800">
+      <div className="mb-8 overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="bg-neutral-50 text-neutral-500 dark:bg-neutral-900">
+          <thead className="bg-sky-50/60 text-slate-500">
             <tr>
               <th className="px-3 py-2 font-medium">Period</th>
               <th className="px-3 py-2 font-medium">Tickets</th>
@@ -85,11 +85,11 @@ export default async function ReportsPage({ searchParams }: PageProps) {
           </thead>
           <tbody>
             {report.trend.map((point) => (
-              <tr key={point.key} className="border-t border-neutral-200 dark:border-neutral-800">
-                <td className="px-3 py-2">{point.label}</td>
-                <td className="px-3 py-2">{point.tickets}</td>
-                <td className="px-3 py-2">{formatMoney(point.revenue)}</td>
-                <td className="px-3 py-2">{formatMoney(point.profit)}</td>
+              <tr key={point.key} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
+                <td className="px-3 py-2 text-slate-700">{point.label}</td>
+                <td className="px-3 py-2 text-slate-700">{point.tickets}</td>
+                <td className="px-3 py-2 text-slate-700">{formatMoney(point.revenue)}</td>
+                <td className="px-3 py-2 text-slate-700">{formatMoney(point.profit)}</td>
               </tr>
             ))}
           </tbody>
@@ -114,13 +114,13 @@ type SummaryRow = { key: string; label: string; tickets: number; revenue: number
 function BreakdownTable({ title, rows }: { title: string; rows: SummaryRow[] }) {
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold">{title}</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">{title}</h2>
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-500">No sales in this period.</p>
+        <p className="text-sm text-slate-500">No sales in this period.</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-neutral-200 dark:border-neutral-800">
+        <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-50 text-neutral-500 dark:bg-neutral-900">
+            <thead className="bg-sky-50/60 text-slate-500">
               <tr>
                 <th className="px-3 py-2 font-medium">Name</th>
                 <th className="px-3 py-2 font-medium">Tickets</th>
@@ -130,11 +130,11 @@ function BreakdownTable({ title, rows }: { title: string; rows: SummaryRow[] }) 
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.key} className="border-t border-neutral-200 dark:border-neutral-800">
-                  <td className="px-3 py-2">{row.label}</td>
-                  <td className="px-3 py-2">{row.tickets}</td>
-                  <td className="px-3 py-2">{formatMoney(row.revenue)}</td>
-                  <td className="px-3 py-2">{formatMoney(row.profit)}</td>
+                <tr key={row.key} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
+                  <td className="px-3 py-2 text-slate-700">{row.label}</td>
+                  <td className="px-3 py-2 text-slate-700">{row.tickets}</td>
+                  <td className="px-3 py-2 text-slate-700">{formatMoney(row.revenue)}</td>
+                  <td className="px-3 py-2 text-slate-700">{formatMoney(row.profit)}</td>
                 </tr>
               ))}
             </tbody>
@@ -148,15 +148,15 @@ function BreakdownTable({ title, rows }: { title: string; rows: SummaryRow[] }) 
 function TopList({ title, rows }: { title: string; rows: SummaryRow[] }) {
   return (
     <div>
-      <h2 className="mb-3 text-sm font-semibold">{title}</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">{title}</h2>
       {rows.length === 0 ? (
-        <p className="text-sm text-neutral-500">No sales in this period.</p>
+        <p className="text-sm text-slate-500">No sales in this period.</p>
       ) : (
-        <ul className="divide-y divide-neutral-200 rounded-md border border-neutral-200 text-sm dark:divide-neutral-800 dark:border-neutral-800">
+        <ul className="divide-y divide-slate-100 rounded-xl border border-sky-100 bg-white text-sm shadow-sm">
           {rows.map((row) => (
-            <li key={row.key} className="flex items-center justify-between px-3 py-2">
-              <span>{row.label}</span>
-              <span className="text-neutral-500">
+            <li key={row.key} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40">
+              <span className="text-slate-700">{row.label}</span>
+              <span className="text-slate-500">
                 {row.tickets} tickets · {formatMoney(row.revenue)}
               </span>
             </li>

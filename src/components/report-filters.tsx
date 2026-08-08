@@ -5,14 +5,14 @@ import type { ReportPreset } from "@/lib/reports";
 type Option = { id: string; name: string };
 
 const inputClass =
-  "rounded-md border border-neutral-300 px-2 py-1.5 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-900";
-const labelClass = "mb-1 block text-xs font-medium text-neutral-500";
+  "rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
+const labelClass = "mb-1 block text-xs font-medium text-slate-500";
 
 function tabClass(active: boolean) {
-  return `rounded-md px-3 py-1.5 text-sm font-medium ${
+  return `rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
     active
-      ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-      : "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-sm shadow-sky-300/50"
+      : "border border-slate-200 text-slate-600 hover:border-sky-200 hover:bg-sky-50 hover:text-slate-900"
   }`;
 }
 
@@ -60,7 +60,7 @@ export function ReportFilters({
       <form
         method="get"
         action="/reports"
-        className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
       >
         <input type="hidden" name="preset" value="custom" />
         <div>
@@ -103,7 +103,7 @@ export function ReportFilters({
         </div>
         <button
           type="submit"
-          className="rounded-md bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white dark:bg-white dark:text-neutral-900"
+          className="rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-1.5 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98]"
         >
           Apply
         </button>

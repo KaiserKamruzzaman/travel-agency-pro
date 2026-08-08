@@ -1,29 +1,74 @@
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
 import { requireSession, saleScopeWhere } from "@/lib/authz";
+import { getOrgFilterOptions } from "@/lib/reports";
+import { buildSalesWhere, getDistinctAirlines, getPaginatedSales, SALES_PAGE_SIZE } from "@/lib/sales";
 import { formatDate, formatMoney } from "@/lib/format";
 import { VoidSaleButton } from "@/components/void-sale-button";
 import { StatusBadge } from "@/components/status-badge";
+import { SalesFilters } from "@/components/sales-filters";
+import { Pagination } from "@/components/pagination";
+import { PaymentStatus, SaleStatus } from "@/generated/prisma/client";
 
-export default async function SalesPage() {
+type SearchParams = { [key: string]: string | string[] | undefined };
+type PageProps = { searchParams: Promise<SearchParams> };
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function parseDate(value: string | undefined): Date | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+export default async function SalesPage({ searchParams }: PageProps) {
   const session = await requireSession();
   const isOwner = session.user.role === "OWNER";
 
-  const sales = await prisma.sale.findMany({
-    where: saleScopeWhere(session.user),
-    orderBy: { saleDate: "desc" },
-    include: {
-      employee: { select: { id: true, name: true } },
-      branch: { select: { id: true, name: true } },
-    },
-  });
+  const sp = await searchParams;
+  const q = firstParam(sp.q) || undefined;
+  const fromParam = firstParam(sp.from) || undefined;
+  const toParam = firstParam(sp.to) || undefined;
+  const branchId = isOwner ? firstParam(sp.branchId) || undefined : undefined;
+  const employeeId = isOwner ? firstParam(sp.employeeId) || undefined : undefined;
+  const airline = firstParam(sp.airline) || undefined;
+  const statusParam = firstParam(sp.status);
+  const status = statusParam && (Object.values(SaleStatus) as string[]).includes(statusParam)
+    ? (statusParam as SaleStatus)
+    : undefined;
+  const paymentStatusParam = firstParam(sp.paymentStatus);
+  const paymentStatus =
+    paymentStatusParam && (Object.values(PaymentStatus) as string[]).includes(paymentStatusParam)
+      ? (paymentStatusParam as PaymentStatus)
+      : undefined;
+
+  const from = parseDate(fromParam);
+  const toRaw = parseDate(toParam);
+  const to = toRaw ? new Date(toRaw.getFullYear(), toRaw.getMonth(), toRaw.getDate() + 1) : undefined;
+
+  const pageParam = Number(firstParam(sp.page));
+  const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+
+  const scope = saleScopeWhere(session.user);
+  const where = buildSalesWhere(scope, { from, to, branchId, employeeId, airline, status, paymentStatus, q });
+
+  const [{ sales, total, pageCount }, filterOptions, airlines] = await Promise.all([
+    getPaginatedSales(where, page),
+    isOwner ? getOrgFilterOptions(session.user.organizationId) : Promise.resolve({ branches: [], employees: [] }),
+    getDistinctAirlines(scope),
+  ]);
+
+  const hasActiveFilters = Boolean(
+    q || fromParam || toParam || branchId || employeeId || airline || status || paymentStatus,
+  );
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <div className="animate-fade-in-up mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">{isOwner ? "All sales" : "My sales"}</h1>
-          <p className="text-sm text-neutral-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{isOwner ? "All sales" : "My sales"}</h1>
+          <p className="text-sm text-slate-500">
             {isOwner
               ? "Organization-wide view across all branches and employees."
               : "Sales you've entered."}
@@ -32,19 +77,37 @@ export default async function SalesPage() {
         {!isOwner && (
           <Link
             href="/sales/new"
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-neutral-900"
+            className="rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98]"
           >
             + New sale
           </Link>
         )}
       </div>
 
+      <SalesFilters
+        isOwner={isOwner}
+        branches={filterOptions.branches}
+        employees={filterOptions.employees}
+        airlines={airlines}
+        values={{
+          q,
+          from: fromParam,
+          to: toParam,
+          branchId,
+          employeeId,
+          airline,
+          status,
+          paymentStatus,
+        }}
+        hasActiveFilters={hasActiveFilters}
+      />
+
       {sales.length === 0 ? (
-        <p className="text-sm text-neutral-500">No sales yet.</p>
+        <p className="animate-fade-in-up text-sm text-slate-500">No sales match these filters.</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-neutral-200 dark:border-neutral-800">
+        <div className="animate-fade-in-up overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-neutral-50 text-neutral-500 dark:bg-neutral-900">
+            <thead className="bg-sky-50/60 text-slate-500">
               <tr>
                 <th className="px-3 py-2 font-medium">Sale date</th>
                 <th className="px-3 py-2 font-medium">Passenger</th>
@@ -64,18 +127,18 @@ export default async function SalesPage() {
                 const margin = Number(sale.salePrice) - Number(sale.costPrice);
                 const isMine = sale.employeeId === session.user.id;
                 return (
-                  <tr key={sale.id} className="border-t border-neutral-200 dark:border-neutral-800">
-                    <td className="px-3 py-2 whitespace-nowrap">{formatDate(sale.saleDate)}</td>
-                    <td className="px-3 py-2">{sale.passengerName}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                  <tr key={sale.id} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(sale.saleDate)}</td>
+                    <td className="px-3 py-2 text-slate-700">{sale.passengerName}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">
                       {sale.origin} → {sale.destination}
                     </td>
-                    <td className="px-3 py-2">{sale.airline}</td>
-                    {isOwner && <td className="px-3 py-2">{sale.branch.name}</td>}
-                    {isOwner && <td className="px-3 py-2">{sale.employee.name}</td>}
-                    <td className="px-3 py-2 whitespace-nowrap">{formatMoney(sale.salePrice.toString())}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">{formatMoney(margin)}</td>
-                    <td className="px-3 py-2">{sale.paymentStatus}</td>
+                    <td className="px-3 py-2 text-slate-700">{sale.airline}</td>
+                    {isOwner && <td className="px-3 py-2 text-slate-700">{sale.branch.name}</td>}
+                    {isOwner && <td className="px-3 py-2 text-slate-700">{sale.employee.name}</td>}
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(margin)}</td>
+                    <td className="px-3 py-2 text-slate-700">{sale.paymentStatus}</td>
                     <td className="px-3 py-2">
                       <StatusBadge status={sale.status} />
                     </td>
@@ -83,7 +146,7 @@ export default async function SalesPage() {
                       <td className="px-3 py-2">
                         {isMine && sale.status !== "VOID" && (
                           <div className="flex items-center gap-3">
-                            <Link href={`/sales/${sale.id}/edit`} className="text-sm text-blue-600 hover:underline">
+                            <Link href={`/sales/${sale.id}/edit`} className="text-sm font-medium text-blue-600 hover:underline">
                               Edit
                             </Link>
                             <VoidSaleButton saleId={sale.id} />
@@ -98,6 +161,16 @@ export default async function SalesPage() {
           </table>
         </div>
       )}
+
+      <Pagination
+        basePath="/sales"
+        searchParams={{ q, from: fromParam, to: toParam, branchId, employeeId, airline, status, paymentStatus }}
+        page={page}
+        pageCount={pageCount}
+        total={total}
+        pageSize={SALES_PAGE_SIZE}
+        resultCount={sales.length}
+      />
     </div>
   );
 }

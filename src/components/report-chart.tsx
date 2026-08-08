@@ -12,10 +12,10 @@ export type TrendPoint = {
 };
 
 // Validated categorical slots (blue, aqua) — see dataviz skill palette.md.
-// Chart chrome (grid/axis/text) reuses the app's existing neutral scale so
+// Chart chrome (grid/axis/text) reuses the app's sky/slate scale so
 // the chart reads as part of the same UI, not a bolted-on widget.
-const REVENUE_COLOR = "fill-[#2a78d6] dark:fill-[#3987e5]";
-const PROFIT_COLOR = "fill-[#1baf7a] dark:fill-[#199e70]";
+const REVENUE_COLOR = "fill-sky-500";
+const PROFIT_COLOR = "fill-emerald-500";
 
 const VIEW_W = 960;
 const VIEW_H = 320;
@@ -45,7 +45,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
 
   if (trend.length === 0 || trend.every((t) => t.revenue === 0 && t.profit === 0)) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-md border border-neutral-200 text-sm text-neutral-500 dark:border-neutral-800">
+      <div className="flex h-64 items-center justify-center rounded-xl border border-sky-100 bg-white text-sm text-slate-500 shadow-sm">
         No sales in this period yet.
       </div>
     );
@@ -66,14 +66,14 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
   const activeLeftPct = hovered !== null ? ((hovered + 0.5) / trend.length) * 100 : 0;
 
   return (
-    <div className="rounded-md border border-neutral-200 p-4 dark:border-neutral-800">
+    <div className="rounded-xl border border-sky-100 bg-white p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-4 text-sm">
-        <span className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
+        <span className="flex items-center gap-1.5 text-slate-600">
           <span className={`inline-block h-2.5 w-2.5 rounded-sm ${REVENUE_COLOR}`} />
           Revenue
         </span>
-        <span className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
-          <span className={`inline-block h-2.5 w-2.5 rounded-sm ring-1 ring-neutral-300 dark:ring-neutral-700 ${PROFIT_COLOR}`} />
+        <span className="flex items-center gap-1.5 text-slate-600">
+          <span className={`inline-block h-2.5 w-2.5 rounded-sm ring-1 ring-slate-300 ${PROFIT_COLOR}`} />
           Profit
         </span>
       </div>
@@ -87,7 +87,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                 x2={VIEW_W - MARGIN.right}
                 y1={yFor(tick)}
                 y2={yFor(tick)}
-                className="stroke-neutral-200 dark:stroke-neutral-800"
+                className="stroke-slate-200"
                 strokeWidth={1}
               />
               <text
@@ -95,7 +95,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                 y={yFor(tick)}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="fill-neutral-500 text-[11px]"
+                className="fill-slate-400 text-[11px]"
               >
                 {formatCompactMoney(tick)}
               </text>
@@ -131,7 +131,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                     y={MARGIN.top}
                     width={bandWidth}
                     height={PLOT_H}
-                    className="fill-neutral-500/5"
+                    className="fill-sky-500/5"
                     pointerEvents="none"
                   />
                 )}
@@ -156,7 +156,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                     x={bandX + bandWidth / 2}
                     y={VIEW_H - MARGIN.bottom + 16}
                     textAnchor="middle"
-                    className="fill-neutral-500 text-[11px]"
+                    className="fill-slate-400 text-[11px]"
                   >
                     {point.label}
                   </text>
@@ -169,28 +169,28 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
             x2={VIEW_W - MARGIN.right}
             y1={VIEW_H - MARGIN.bottom}
             y2={VIEW_H - MARGIN.bottom}
-            className="stroke-neutral-300 dark:stroke-neutral-700"
+            className="stroke-slate-300"
             strokeWidth={1}
           />
         </svg>
 
         {active && (
           <div
-            className="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-xs shadow-md dark:border-neutral-700 dark:bg-neutral-900"
+            className="animate-fade-in pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-sky-100 bg-white px-3 py-2 text-xs shadow-lg shadow-sky-900/10"
             style={{ left: `${Math.min(88, Math.max(12, activeLeftPct))}%` }}
           >
-            <p className="mb-1 font-medium text-neutral-700 dark:text-neutral-200">{active.label}</p>
+            <p className="mb-1 font-medium text-slate-700">{active.label}</p>
             <p className="flex items-center gap-1.5">
               <span className={`inline-block h-2 w-3 rounded-sm ${REVENUE_COLOR}`} />
-              <span className="font-semibold text-neutral-900 dark:text-neutral-50">{formatMoney(active.revenue)}</span>
-              <span className="text-neutral-500">Revenue</span>
+              <span className="font-semibold text-slate-900">{formatMoney(active.revenue)}</span>
+              <span className="text-slate-500">Revenue</span>
             </p>
             <p className="flex items-center gap-1.5">
               <span className={`inline-block h-2 w-3 rounded-sm ${PROFIT_COLOR}`} />
-              <span className="font-semibold text-neutral-900 dark:text-neutral-50">{formatMoney(active.profit)}</span>
-              <span className="text-neutral-500">Profit</span>
+              <span className="font-semibold text-slate-900">{formatMoney(active.profit)}</span>
+              <span className="text-slate-500">Profit</span>
             </p>
-            <p className="mt-1 text-neutral-500">{active.tickets} tickets</p>
+            <p className="mt-1 text-slate-500">{active.tickets} tickets</p>
           </div>
         )}
       </div>
