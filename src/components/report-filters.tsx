@@ -41,7 +41,7 @@ export function ReportFilters({
   }
 
   return (
-    <div className="mb-6 space-y-3">
+    <div className="mb-6 space-y-3 print:hidden">
       <div className="flex flex-wrap items-center gap-2">
         <Link href={presetHref("week")} className={tabClass(preset === "week")}>
           Last 7 days

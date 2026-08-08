@@ -24,7 +24,13 @@ export function formatDate(value: Date | string): string {
   return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
 }
 
+// Local calendar-date components, not toISOString() — that converts to UTC
+// and shifts the date backward for any timezone ahead of UTC (see the same
+// caveat in reports.ts's bucketKey).
 export function toDateInputValue(value: Date | string): string {
   const date = typeof value === "string" ? new Date(value) : value;
-  return date.toISOString().slice(0, 10);
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }

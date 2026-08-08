@@ -7,6 +7,7 @@ import { VoidSaleButton } from "@/components/void-sale-button";
 import { StatusBadge } from "@/components/status-badge";
 import { SalesFilters } from "@/components/sales-filters";
 import { Pagination } from "@/components/pagination";
+import { ExportButtons } from "@/components/export-buttons";
 import { PaymentStatus, SaleStatus } from "@/generated/prisma/client";
 
 type SearchParams = { [key: string]: string | string[] | undefined };
@@ -20,6 +21,14 @@ function parseDate(value: string | undefined): Date | undefined {
   if (!value) return undefined;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function salesExportParams(values: Record<string, string | undefined>): URLSearchParams {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(values)) {
+    if (value) params.set(key, value);
+  }
+  return params;
 }
 
 export default async function SalesPage({ searchParams }: PageProps) {
@@ -74,14 +83,28 @@ export default async function SalesPage({ searchParams }: PageProps) {
               : "Sales you've entered."}
           </p>
         </div>
-        {!isOwner && (
-          <Link
-            href="/sales/new"
-            className="rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98]"
-          >
-            + New sale
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          <ExportButtons
+            csvHref={`/api/sales/export?${salesExportParams({
+              q,
+              from: fromParam,
+              to: toParam,
+              branchId,
+              employeeId,
+              airline,
+              status,
+              paymentStatus,
+            }).toString()}`}
+          />
+          {!isOwner && (
+            <Link
+              href="/sales/new"
+              className="print:hidden rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98]"
+            >
+              + New sale
+            </Link>
+          )}
+        </div>
       </div>
 
       <SalesFilters
@@ -119,7 +142,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
                 <th className="px-3 py-2 font-medium">Margin</th>
                 <th className="px-3 py-2 font-medium">Payment</th>
                 <th className="px-3 py-2 font-medium">Status</th>
-                {!isOwner && <th className="px-3 py-2 font-medium">Actions</th>}
+                {!isOwner && <th className="px-3 py-2 font-medium print:hidden">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -143,7 +166,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
                       <StatusBadge status={sale.status} />
                     </td>
                     {!isOwner && (
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 print:hidden">
                         {isMine && sale.status !== "VOID" && (
                           <div className="flex items-center gap-3">
                             <Link href={`/sales/${sale.id}/edit`} className="text-sm font-medium text-blue-600 hover:underline">

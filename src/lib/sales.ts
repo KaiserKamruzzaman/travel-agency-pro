@@ -55,6 +55,74 @@ export async function getPaginatedSales(where: Prisma.SaleWhereInput, page: numb
   return { sales, total, pageCount: Math.max(1, Math.ceil(total / pageSize)) };
 }
 
+/** Unpaginated fetch for export — the CSV/print export must cover every matching sale, not just the current page. */
+export async function getAllSales(where: Prisma.SaleWhereInput) {
+  return prisma.sale.findMany({
+    where,
+    orderBy: { saleDate: "desc" },
+    include: {
+      employee: { select: { id: true, name: true } },
+      branch: { select: { id: true, name: true } },
+    },
+  });
+}
+
+type ExportableSale = Awaited<ReturnType<typeof getAllSales>>[number];
+
+function csvField(value: string | number): string {
+  const s = String(value);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function csvRow(fields: (string | number)[]): string {
+  return fields.map(csvField).join(",") + "\r\n";
+}
+
+export function buildSalesCsv(sales: ExportableSale[]): string {
+  let csv = csvRow([
+    "Sale date",
+    "Passenger",
+    "PNR",
+    "Airline",
+    "Origin",
+    "Destination",
+    "Travel date",
+    "Branch",
+    "Employee",
+    "Sale price",
+    "Cost price",
+    "Margin",
+    "Payment status",
+    "Status",
+    "Customer phone",
+    "Customer email",
+    "Notes",
+  ]);
+  for (const sale of sales) {
+    const margin = Number(sale.salePrice) - Number(sale.costPrice);
+    csv += csvRow([
+      sale.saleDate.toDateString(),
+      sale.passengerName,
+      sale.pnr ?? "",
+      sale.airline,
+      sale.origin,
+      sale.destination,
+      sale.travelDate.toDateString(),
+      sale.branch.name,
+      sale.employee.name,
+      Number(sale.salePrice).toFixed(2),
+      Number(sale.costPrice).toFixed(2),
+      margin.toFixed(2),
+      sale.paymentStatus,
+      sale.status,
+      sale.customerPhone ?? "",
+      sale.customerEmail ?? "",
+      sale.notes ?? "",
+    ]);
+  }
+  return csv;
+}
+
 export async function getDistinctAirlines(scope: Prisma.SaleWhereInput) {
   const rows = await prisma.sale.findMany({
     where: scope,

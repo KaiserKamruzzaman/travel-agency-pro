@@ -17,7 +17,7 @@ export function Nav({ session }: { session: Session }) {
   const isOwner = session.user.role === "OWNER";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur-md print:hidden">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="flex items-center gap-6">
           <Link href="/sales" className="flex items-center gap-2 font-semibold text-slate-900">

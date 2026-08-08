@@ -104,6 +104,15 @@ body {
   animation: float-slower 9s ease-in-out infinite;
 }
 
+@media print {
+  body {
+    background: #ffffff;
+  }
+  tr {
+    break-inside: avoid;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
   .animate-fade-in,

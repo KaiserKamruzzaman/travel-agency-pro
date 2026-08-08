@@ -185,6 +185,59 @@ export async function getSalesReport(
   };
 }
 
+function csvField(value: string | number): string {
+  const s = String(value);
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function csvRow(fields: (string | number)[]): string {
+  return fields.map(csvField).join(",") + "\r\n";
+}
+
+type SummaryRow = { label: string; tickets: number; revenue: number; profit: number };
+
+function csvSection(title: string, rows: SummaryRow[]): string {
+  let csv = csvRow([title]);
+  csv += csvRow(["Name", "Tickets", "Revenue", "Profit"]);
+  for (const row of rows) csv += csvRow([row.label, row.tickets, row.revenue.toFixed(2), row.profit.toFixed(2)]);
+  return csv + "\r\n";
+}
+
+/**
+ * Renders a report as CSV for accounting/tax use (requirement 6.4). Opens
+ * directly in Excel/Sheets, so this doubles as the "Excel" export path
+ * without needing a spreadsheet-writing dependency.
+ */
+export function buildReportCsv(
+  report: Awaited<ReturnType<typeof getSalesReport>>,
+  range: { start: Date; end: Date },
+): string {
+  let csv = csvRow(["Sales Report"]);
+  csv += csvRow([`${range.start.toDateString()} - ${range.end.toDateString()}`]);
+  csv += "\r\n";
+
+  csv += csvRow(["Summary"]);
+  csv += csvRow(["Tickets sold", report.totals.tickets]);
+  csv += csvRow(["Gross revenue", report.totals.revenue.toFixed(2)]);
+  csv += csvRow(["Total cost", report.totals.cost.toFixed(2)]);
+  csv += csvRow(["Net profit", report.totals.profit.toFixed(2)]);
+  csv += csvRow(["Average sale value", report.totals.avgSale.toFixed(2)]);
+  csv += csvRow(["Top branch", report.topBranch?.label ?? "—"]);
+  csv += csvRow(["Top employee", report.topEmployee?.label ?? "—"]);
+  csv += "\r\n";
+
+  csv += csvSection("By branch", report.byBranch);
+  csv += csvSection("By employee", report.byEmployee);
+  csv += csvSection("Top routes", report.byRoute);
+  csv += csvSection("Top airlines", report.byAirline);
+
+  csv += csvRow(["Trend"]);
+  csv += csvRow(["Period", "Tickets", "Revenue", "Profit"]);
+  for (const point of report.trend) csv += csvRow([point.label, point.tickets, point.revenue.toFixed(2), point.profit.toFixed(2)]);
+
+  return csv;
+}
+
 export async function getOrgFilterOptions(organizationId: string) {
   const [branches, employees] = await Promise.all([
     prisma.branch.findMany({ where: { organizationId }, select: { id: true, name: true }, orderBy: { name: "asc" } }),

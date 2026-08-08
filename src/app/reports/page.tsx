@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/authz";
 import { getOrgFilterOptions, getPresetRange, getSalesReport, type ReportPreset } from "@/lib/reports";
-import { formatDate, formatMoney } from "@/lib/format";
+import { formatDate, formatMoney, toDateInputValue } from "@/lib/format";
 import { ReportFilters } from "@/components/report-filters";
 import { ReportChart } from "@/components/report-chart";
 import { SummaryCard } from "@/components/summary-card";
+import { ExportButtons } from "@/components/export-buttons";
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 type PageProps = { searchParams: Promise<SearchParams> };
@@ -13,6 +14,27 @@ const VALID_PRESETS: ReportPreset[] = ["week", "month", "year", "custom"];
 
 function firstParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function reportExportParams({
+  start,
+  displayEnd,
+  branchId,
+  employeeId,
+}: {
+  start: Date;
+  displayEnd: Date;
+  branchId?: string;
+  employeeId?: string;
+}): URLSearchParams {
+  const params = new URLSearchParams({
+    preset: "custom",
+    start: toDateInputValue(start),
+    end: toDateInputValue(displayEnd),
+  });
+  if (branchId) params.set("branchId", branchId);
+  if (employeeId) params.set("employeeId", employeeId);
+  return params;
 }
 
 export default async function ReportsPage({ searchParams }: PageProps) {
@@ -44,11 +66,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-      <div className="animate-fade-in-up mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Reports</h1>
-        <p className="text-sm text-slate-500">
-          {formatDate(start)} – {formatDate(displayEnd)}
-        </p>
+      <div className="animate-fade-in-up mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Reports</h1>
+          <p className="text-sm text-slate-500">
+            {formatDate(start)} – {formatDate(displayEnd)}
+          </p>
+        </div>
+        <ExportButtons csvHref={`/api/reports/export?${reportExportParams({ start, displayEnd, branchId, employeeId }).toString()}`} />
       </div>
 
       <ReportFilters

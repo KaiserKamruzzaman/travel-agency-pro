@@ -36,7 +36,7 @@ export function SalesFilters({
     <form
       method="get"
       action="/sales"
-      className="animate-fade-in-up mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
+      className="animate-fade-in-up print:hidden mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
     >
       <div>
         <label className={labelClass} htmlFor="q">
