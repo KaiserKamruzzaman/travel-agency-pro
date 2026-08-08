@@ -17,6 +17,7 @@ export const createSaleSchema = z.object({
     .optional(),
   saleDate: z.coerce.date({ error: "Sale date is required" }),
   notes: z.string().trim().optional().or(z.literal("")),
+  source: z.enum(["MANUAL", "DOCUMENT_UPLOAD"]).default("MANUAL"),
 });
 
 export const updateSaleSchema = createSaleSchema.partial().extend({

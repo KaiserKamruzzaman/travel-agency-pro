@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         customerEmail: data.customerEmail || null,
         saleDate: data.saleDate,
         notes: data.notes || null,
-        source: "MANUAL",
+        source: data.source,
         createdById: session.user.id,
       },
     });

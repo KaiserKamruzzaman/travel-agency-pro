@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 export type SaleFormValues = {
   passengerName: string;
@@ -18,6 +18,19 @@ export type SaleFormValues = {
   saleDate: string;
   status: "ISSUED" | "CANCELLED" | "REFUNDED" | "VOID";
   notes: string;
+};
+
+type ExtractedSaleFields = {
+  passengerName: string | null;
+  pnr: string | null;
+  airline: string | null;
+  origin: string | null;
+  destination: string | null;
+  travelDate: string | null;
+  salePrice: number | null;
+  customerPhone: string | null;
+  customerEmail: string | null;
+  notes: string | null;
 };
 
 const emptyValues: SaleFormValues = {
@@ -51,12 +64,63 @@ export function SaleForm({
   initialValues?: Partial<SaleFormValues>;
 }) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState<SaleFormValues>({ ...emptyValues, ...initialValues });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [source, setSource] = useState<"MANUAL" | "DOCUMENT_UPLOAD">("MANUAL");
+  const [pastedText, setPastedText] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [extractNotice, setExtractNotice] = useState<string | null>(null);
+
   function update<K extends keyof SaleFormValues>(key: K, value: SaleFormValues[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleExtract(file: File | null) {
+    if (!file && !pastedText.trim()) {
+      setExtractError("Upload a PDF or paste confirmation text first");
+      return;
+    }
+    setExtracting(true);
+    setExtractError(null);
+    setExtractNotice(null);
+
+    const formData = new FormData();
+    if (file) formData.append("file", file);
+    else formData.append("text", pastedText);
+
+    try {
+      const res = await fetch("/api/sales/extract", { method: "POST", body: formData });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setExtractError(body.error || "Extraction failed — please fill in the form manually");
+        return;
+      }
+
+      const fields = body.fields as ExtractedSaleFields;
+      setValues((prev) => ({
+        ...prev,
+        passengerName: fields.passengerName ?? prev.passengerName,
+        pnr: fields.pnr ?? prev.pnr,
+        airline: fields.airline ?? prev.airline,
+        origin: fields.origin ?? prev.origin,
+        destination: fields.destination ?? prev.destination,
+        travelDate: fields.travelDate ?? prev.travelDate,
+        salePrice: fields.salePrice != null ? String(fields.salePrice) : prev.salePrice,
+        customerPhone: fields.customerPhone ?? prev.customerPhone,
+        customerEmail: fields.customerEmail ?? prev.customerEmail,
+        notes: fields.notes ?? prev.notes,
+      }));
+      setSource("DOCUMENT_UPLOAD");
+      setExtractNotice("Fields pre-filled from the document — review every field below before saving.");
+    } catch {
+      setExtractError("Network error — please fill in the form manually");
+    } finally {
+      setExtracting(false);
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -82,6 +146,9 @@ export function SaleForm({
       saleDate: values.saleDate,
       notes: values.notes,
     };
+    if (mode === "create") {
+      payload.source = source;
+    }
     if (mode === "edit") {
       payload.status = values.status;
     }
@@ -117,6 +184,66 @@ export function SaleForm({
         <p className="animate-fade-in rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
           {error}
         </p>
+      )}
+
+      {mode === "create" && (
+        <div className="rounded-xl border border-sky-100 bg-sky-50/40 p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-800">Import from document (optional)</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Upload a GDS e-ticket/itinerary PDF, or paste the confirmation text. Extracted fields pre-fill the form
+            below — nothing is saved until you review and click Save.
+          </p>
+
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelClass} htmlFor="extractFile">
+                PDF upload
+              </label>
+              <input
+                id="extractFile"
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className={inputClass}
+                disabled={extracting}
+              />
+            </div>
+            <div>
+              <label className={labelClass} htmlFor="extractText">
+                Or paste confirmation text
+              </label>
+              <textarea
+                id="extractText"
+                rows={1}
+                className={inputClass}
+                placeholder="Paste raw GDS confirmation text"
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                disabled={extracting}
+              />
+            </div>
+          </div>
+
+          {extractError && (
+            <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+              {extractError}
+            </p>
+          )}
+          {extractNotice && (
+            <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              {extractNotice}
+            </p>
+          )}
+
+          <button
+            type="button"
+            disabled={extracting}
+            onClick={() => handleExtract(fileInputRef.current?.files?.[0] ?? null)}
+            className="mt-3 rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow-sm transition-colors hover:bg-sky-50 disabled:opacity-60"
+          >
+            {extracting ? "Extracting…" : "Extract details"}
+          </button>
+        </div>
       )}
 
       <div className="rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
