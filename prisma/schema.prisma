@@ -1,0 +1,134 @@
+// Prisma schema — Travel Agency Sales Tracker (Phase 1)
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  EMPLOYEE
+}
+
+enum PaymentStatus {
+  PAID
+  PARTIAL
+  DUE
+}
+
+enum SaleStatus {
+  ISSUED
+  CANCELLED
+  REFUNDED
+  VOID
+}
+
+enum EntrySource {
+  MANUAL
+  DOCUMENT_UPLOAD
+}
+
+// One agency. Every core table below carries organizationId directly
+// (not just derived through relations) so the system can be sold to
+// multiple agencies later without a schema redesign, per requirements
+// section 2.2.
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  branches Branch[]
+  users    User[]
+  sales    Sale[]
+}
+
+model Branch {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  location       String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users        User[]
+  sales        Sale[]
+
+  @@index([organizationId])
+}
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String
+  // Nullable: owners/admins are org-wide and not tied to a branch.
+  // Employees must have a branchId (enforced in application code).
+  branchId       String?
+  name           String
+  email          String   @unique
+  passwordHash   String
+  role           Role
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch?      @relation(fields: [branchId], references: [id])
+
+  salesSold      Sale[] @relation("SaleEmployee")
+  salesCreated   Sale[] @relation("SaleCreatedBy")
+  salesUpdated   Sale[] @relation("SaleUpdatedBy")
+
+  @@index([organizationId])
+  @@index([branchId])
+}
+
+model Sale {
+  id             String @id @default(cuid())
+  // Denormalized alongside branch/employee for defense-in-depth scoping
+  // and simple filtering, per requirements section 2.2.
+  organizationId String
+  branchId       String
+  employeeId     String
+
+  passengerName String
+  pnr           String?
+  airline       String
+  origin        String
+  destination   String
+  travelDate    DateTime
+
+  salePrice Decimal @db.Decimal(12, 2)
+  costPrice Decimal @db.Decimal(12, 2)
+
+  paymentStatus PaymentStatus @default(DUE)
+
+  customerPhone String?
+  customerEmail String?
+
+  saleDate DateTime    @default(now())
+  // Soft status changes only — sales are never hard-deleted, to
+  // preserve audit history (requirements section 7).
+  status   SaleStatus  @default(ISSUED)
+  source   EntrySource @default(MANUAL)
+  notes    String?
+
+  createdById String
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch       @relation(fields: [branchId], references: [id])
+  employee     User         @relation("SaleEmployee", fields: [employeeId], references: [id])
+  createdBy    User         @relation("SaleCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?        @relation("SaleUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([organizationId])
+  @@index([branchId])
+  @@index([employeeId])
+  @@index([saleDate])
+  @@index([status])
+}
