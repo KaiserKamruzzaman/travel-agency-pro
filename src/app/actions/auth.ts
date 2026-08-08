@@ -11,7 +11,7 @@ export async function loginAction(_prevState: { error?: string } | undefined, fo
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/sales",
+      redirectTo: "/",
     });
     return {};
   } catch (err) {

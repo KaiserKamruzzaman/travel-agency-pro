@@ -10,6 +10,22 @@ export function Nav({ session }: { session: Session }) {
           <Link href="/sales" className="font-semibold">
             Wanderlust Travel
           </Link>
+          {session.user.role === "OWNER" && (
+            <>
+              <Link
+                href="/dashboard"
+                className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/reports"
+                className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100"
+              >
+                Reports
+              </Link>
+            </>
+          )}
           <Link href="/sales" className="text-sm text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100">
             Sales
           </Link>
