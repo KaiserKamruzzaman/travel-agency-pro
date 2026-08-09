@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sumRevenueAndCost } from "@/lib/sale-metrics";
+import { listExpensesForOrg } from "@/lib/expenses";
 
 // Server's local calendar day. No per-organization timezone field exists
 // yet, so "today" is defined the same way the rest of the app defines
@@ -148,14 +149,18 @@ export async function getEmployeeDetail(organizationId: string, employeeId: stri
   });
   if (!employee) return null;
 
-  const sales = await prisma.sale.findMany({
-    where: { organizationId, employeeId },
-    include: { updatedBy: { select: { id: true, name: true } } },
-    orderBy: { saleDate: "desc" },
-  });
+  const [sales, expenses] = await Promise.all([
+    prisma.sale.findMany({
+      where: { organizationId, employeeId },
+      include: { updatedBy: { select: { id: true, name: true } } },
+      orderBy: { saleDate: "desc" },
+    }),
+    listExpensesForOrg(organizationId, { employeeId }),
+  ]);
 
   const issued = sales.filter((s) => s.status === "ISSUED");
   const { revenue, profit } = sumRevenueAndCost(issued);
+  const compensationTotal = expenses.filter((e) => !e.voided).reduce((sum, e) => sum + Number(e.amount), 0);
 
   return {
     employee: { id: employee.id, name: employee.name, email: employee.email, role: employee.role, branch: employee.branch },
@@ -164,5 +169,6 @@ export async function getEmployeeDetail(organizationId: string, employeeId: stri
     profit,
     avgSale: issued.length > 0 ? revenue / issued.length : 0,
     sales,
+    compensation: { total: compensationTotal, entries: expenses },
   };
 }

@@ -32,11 +32,60 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
         <p className="text-sm text-slate-500">{detail.employee.email}</p>
       </div>
 
-      <div className="animate-fade-in-up mb-8 grid grid-cols-1 gap-4 sm:grid-cols-4">
+      <div className="animate-fade-in-up mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <SummaryCard label="Tickets (all time)" value={String(detail.tickets)} accent="sky" />
         <SummaryCard label="Revenue (all time)" value={formatMoney(detail.revenue)} accent="blue" />
-        <SummaryCard label="Profit (all time)" value={formatMoney(detail.profit)} accent="emerald" />
-        <SummaryCard label="Avg. sale value" value={formatMoney(detail.avgSale)} accent="amber" />
+        <SummaryCard label="Ticket margin (all time)" value={formatMoney(detail.profit)} accent="amber" />
+        <SummaryCard label="Compensation (all time)" value={formatMoney(detail.compensation.total)} accent="rose" />
+        <SummaryCard
+          label="Net (margin − compensation)"
+          value={formatMoney(detail.profit - detail.compensation.total)}
+          accent="emerald"
+        />
+      </div>
+
+      <div className="mb-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-700">Compensation</h2>
+          <Link
+            href={`/dashboard/expenses?employeeId=${detail.employee.id}`}
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
+            Add / manage →
+          </Link>
+        </div>
+        {detail.compensation.entries.length === 0 ? (
+          <p className="text-sm text-slate-500">No salary or other compensation recorded yet.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-sky-50/60 text-slate-500">
+                <tr>
+                  <th className="px-3 py-2 font-medium">Date</th>
+                  <th className="px-3 py-2 font-medium">Description</th>
+                  <th className="px-3 py-2 font-medium">Category</th>
+                  <th className="px-3 py-2 font-medium">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.compensation.entries.map((e) => (
+                  <tr
+                    key={e.id}
+                    className={`border-t border-slate-100 transition-colors hover:bg-sky-50/40 ${e.voided ? "opacity-50" : ""}`}
+                  >
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(e.expenseDate)}</td>
+                    <td className="px-3 py-2 text-slate-700">
+                      {e.description}
+                      {e.voided && <span className="ml-2 text-xs text-rose-600">(voided)</span>}
+                    </td>
+                    <td className="px-3 py-2 text-slate-700">{e.category}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(e.amount.toString())}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-700">Sales history</h2>

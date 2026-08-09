@@ -31,6 +31,7 @@ export function Nav({ session }: { session: Session }) {
                 <NavLink href="/reports">Reports</NavLink>
                 <NavLink href="/dashboard/branches">Branches</NavLink>
                 <NavLink href="/dashboard/employees">Employees</NavLink>
+                <NavLink href="/dashboard/expenses">Expenses</NavLink>
                 <NavLink href="/dashboard/assets">Assets</NavLink>
               </>
             )}

@@ -5,13 +5,14 @@ export function SummaryCard({
 }: {
   label: string;
   value: string;
-  accent?: "sky" | "blue" | "emerald" | "amber";
+  accent?: "sky" | "blue" | "emerald" | "amber" | "rose";
 }) {
   const barColor = {
     sky: "from-sky-400 to-blue-500",
     blue: "from-blue-500 to-indigo-500",
     emerald: "from-emerald-400 to-teal-500",
     amber: "from-amber-400 to-orange-500",
+    rose: "from-rose-400 to-red-500",
   }[accent];
 
   return (

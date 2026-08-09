@@ -86,10 +86,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         employees={employees}
       />
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard label="Tickets sold" value={String(report.totals.tickets)} accent="sky" />
         <SummaryCard label="Gross revenue" value={formatMoney(report.totals.revenue)} accent="blue" />
-        <SummaryCard label="Net profit" value={formatMoney(report.totals.profit)} accent="emerald" />
+        <SummaryCard label="Operating expenses" value={formatMoney(report.totals.expenses)} accent="rose" />
+        <SummaryCard label="Net profit (after expenses)" value={formatMoney(report.totals.netProfit)} accent="emerald" />
+      </div>
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <SummaryCard label="Ticket margin" value={formatMoney(report.totals.profit)} accent="amber" />
         <SummaryCard label="Avg. sale value" value={formatMoney(report.totals.avgSale)} accent="amber" />
         <SummaryCard label="Top branch" value={report.topBranch?.label ?? "—"} accent="sky" />
       </div>
@@ -126,9 +130,10 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         <BreakdownTable title="By employee" rows={report.byEmployee} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <TopList title="Top routes" rows={report.byRoute} />
         <TopList title="Top airlines" rows={report.byAirline} />
+        <ExpenseCategoryList rows={report.byExpenseCategory} />
       </div>
     </div>
   );
@@ -165,6 +170,35 @@ function BreakdownTable({ title, rows }: { title: string; rows: SummaryRow[] }) 
             </tbody>
           </table>
         </div>
+      )}
+    </div>
+  );
+}
+
+const EXPENSE_CATEGORY_LABEL: Record<string, string> = {
+  SALARY: "Salary",
+  RENT: "Rent",
+  UTILITIES: "Utilities",
+  MARKETING: "Marketing",
+  SUPPLIES: "Supplies",
+  OTHER: "Other",
+};
+
+function ExpenseCategoryList({ rows }: { rows: { category: string; total: number }[] }) {
+  return (
+    <div>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Expenses by category</h2>
+      {rows.length === 0 ? (
+        <p className="text-sm text-slate-500">No expenses in this period.</p>
+      ) : (
+        <ul className="divide-y divide-slate-100 rounded-xl border border-sky-100 bg-white text-sm shadow-sm">
+          {rows.map((row) => (
+            <li key={row.category} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40">
+              <span className="text-slate-700">{EXPENSE_CATEGORY_LABEL[row.category] ?? row.category}</span>
+              <span className="text-slate-500">{formatMoney(row.total)}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

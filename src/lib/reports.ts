@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sumRevenueAndCost } from "@/lib/sale-metrics";
+import { getExpenseTotals } from "@/lib/expenses";
 
 export type ReportPreset = "week" | "month" | "year" | "custom";
 export type ReportGranularity = "day" | "month";
@@ -126,19 +127,22 @@ export async function getSalesReport(
   granularity: ReportGranularity,
   filters: ReportFilters = {},
 ) {
-  const sales = await prisma.sale.findMany({
-    where: {
-      organizationId,
-      saleDate: { gte: start, lt: end },
-      ...(filters.branchId && { branchId: filters.branchId }),
-      ...(filters.employeeId && { employeeId: filters.employeeId }),
-    },
-    include: {
-      employee: { select: { id: true, name: true } },
-      branch: { select: { id: true, name: true } },
-    },
-    orderBy: { saleDate: "asc" },
-  });
+  const [sales, expenses] = await Promise.all([
+    prisma.sale.findMany({
+      where: {
+        organizationId,
+        saleDate: { gte: start, lt: end },
+        ...(filters.branchId && { branchId: filters.branchId }),
+        ...(filters.employeeId && { employeeId: filters.employeeId }),
+      },
+      include: {
+        employee: { select: { id: true, name: true } },
+        branch: { select: { id: true, name: true } },
+      },
+      orderBy: { saleDate: "asc" },
+    }),
+    getExpenseTotals(organizationId, { branchId: filters.branchId, employeeId: filters.employeeId, start, end }),
+  ]);
 
   const issued = sales.filter((s) => s.status === "ISSUED");
   const totals = sumRevenueAndCost(issued);
@@ -174,13 +178,22 @@ export async function getSalesReport(
 
   return {
     range: { start, end, granularity },
-    totals: { tickets, revenue: totals.revenue, cost: totals.cost, profit: totals.profit, avgSale },
+    totals: {
+      tickets,
+      revenue: totals.revenue,
+      cost: totals.cost,
+      profit: totals.profit,
+      avgSale,
+      expenses: expenses.total,
+      netProfit: totals.profit - expenses.total,
+    },
     topBranch: byBranch[0] ?? null,
     topEmployee: byEmployee[0] ?? null,
     byBranch,
     byEmployee,
     byRoute,
     byAirline,
+    byExpenseCategory: expenses.byCategory,
     trend,
   };
 }
@@ -220,7 +233,9 @@ export function buildReportCsv(
   csv += csvRow(["Tickets sold", report.totals.tickets]);
   csv += csvRow(["Gross revenue", report.totals.revenue.toFixed(2)]);
   csv += csvRow(["Total cost", report.totals.cost.toFixed(2)]);
-  csv += csvRow(["Net profit", report.totals.profit.toFixed(2)]);
+  csv += csvRow(["Ticket margin", report.totals.profit.toFixed(2)]);
+  csv += csvRow(["Operating expenses", report.totals.expenses.toFixed(2)]);
+  csv += csvRow(["Net profit (after expenses)", report.totals.netProfit.toFixed(2)]);
   csv += csvRow(["Average sale value", report.totals.avgSale.toFixed(2)]);
   csv += csvRow(["Top branch", report.topBranch?.label ?? "—"]);
   csv += csvRow(["Top employee", report.topEmployee?.label ?? "—"]);
@@ -230,6 +245,11 @@ export function buildReportCsv(
   csv += csvSection("By employee", report.byEmployee);
   csv += csvSection("Top routes", report.byRoute);
   csv += csvSection("Top airlines", report.byAirline);
+
+  csv += csvRow(["Expenses by category"]);
+  csv += csvRow(["Category", "Amount"]);
+  for (const row of report.byExpenseCategory) csv += csvRow([row.category, row.total.toFixed(2)]);
+  csv += "\r\n";
 
   csv += csvRow(["Trend"]);
   csv += csvRow(["Period", "Tickets", "Revenue", "Profit"]);
