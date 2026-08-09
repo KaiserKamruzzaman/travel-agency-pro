@@ -1,0 +1,13 @@
+-- CreateEnum
+CREATE TYPE "CabinClass" AS ENUM ('ECONOMY', 'PREMIUM_ECONOMY', 'BUSINESS', 'FIRST');
+
+-- CreateEnum
+CREATE TYPE "TripType" AS ENUM ('ONE_WAY', 'ROUND_TRIP');
+
+-- AlterTable
+ALTER TABLE "Sale" ADD COLUMN     "amountPaid" DECIMAL(12,2) NOT NULL DEFAULT 0,
+ADD COLUMN     "cabinClass" "CabinClass" NOT NULL DEFAULT 'ECONOMY',
+ADD COLUMN     "paxCount" INTEGER NOT NULL DEFAULT 1,
+ADD COLUMN     "returnDate" TIMESTAMP(3),
+ADD COLUMN     "supplier" TEXT,
+ADD COLUMN     "tripType" "TripType" NOT NULL DEFAULT 'ONE_WAY';

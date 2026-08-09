@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
+import { formatMoney } from "@/lib/format";
 
 export type SaleFormValues = {
   passengerName: string;
@@ -10,9 +11,15 @@ export type SaleFormValues = {
   origin: string;
   destination: string;
   travelDate: string;
+  tripType: "ONE_WAY" | "ROUND_TRIP";
+  returnDate: string;
+  cabinClass: "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST";
+  paxCount: string;
+  supplier: string;
   salePrice: string;
   costPrice: string;
   paymentStatus: "PAID" | "PARTIAL" | "DUE";
+  amountPaid: string;
   customerPhone: string;
   customerEmail: string;
   saleDate: string;
@@ -27,6 +34,8 @@ type ExtractedSaleFields = {
   origin: string | null;
   destination: string | null;
   travelDate: string | null;
+  returnDate: string | null;
+  cabinClass: SaleFormValues["cabinClass"] | null;
   salePrice: number | null;
   customerPhone: string | null;
   customerEmail: string | null;
@@ -40,9 +49,15 @@ const emptyValues: SaleFormValues = {
   origin: "",
   destination: "",
   travelDate: "",
+  tripType: "ONE_WAY",
+  returnDate: "",
+  cabinClass: "ECONOMY",
+  paxCount: "1",
+  supplier: "",
   salePrice: "",
   costPrice: "",
   paymentStatus: "DUE",
+  amountPaid: "",
   customerPhone: "",
   customerEmail: "",
   saleDate: new Date().toISOString().slice(0, 10),
@@ -113,6 +128,9 @@ export function SaleForm({
         origin: fields.origin ?? prev.origin,
         destination: fields.destination ?? prev.destination,
         travelDate: fields.travelDate ?? prev.travelDate,
+        returnDate: fields.returnDate ?? prev.returnDate,
+        tripType: fields.returnDate ? "ROUND_TRIP" : prev.tripType,
+        cabinClass: fields.cabinClass ?? prev.cabinClass,
         salePrice: fields.salePrice != null ? String(fields.salePrice) : prev.salePrice,
         customerPhone: fields.customerPhone ?? prev.customerPhone,
         customerEmail: fields.customerEmail ?? prev.customerEmail,
@@ -142,9 +160,15 @@ export function SaleForm({
       origin: values.origin,
       destination: values.destination,
       travelDate: values.travelDate,
+      tripType: values.tripType,
+      returnDate: values.tripType === "ROUND_TRIP" ? values.returnDate : undefined,
+      cabinClass: values.cabinClass,
+      paxCount: values.paxCount,
+      supplier: values.supplier,
       salePrice: values.salePrice,
       costPrice: values.costPrice,
       paymentStatus: values.paymentStatus,
+      amountPaid: values.amountPaid || 0,
       customerPhone: values.customerPhone,
       customerEmail: values.customerEmail,
       saleDate: values.saleDate,
@@ -316,6 +340,52 @@ export function SaleForm({
           />
         </div>
 
+        <div>
+          <label className={labelClass} htmlFor="cabinClass">
+            Cabin class
+          </label>
+          <select
+            id="cabinClass"
+            className={inputClass}
+            value={values.cabinClass}
+            onChange={(e) => update("cabinClass", e.target.value as SaleFormValues["cabinClass"])}
+          >
+            <option value="ECONOMY">Economy</option>
+            <option value="PREMIUM_ECONOMY">Premium economy</option>
+            <option value="BUSINESS">Business</option>
+            <option value="FIRST">First</option>
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="paxCount">
+            Passengers / tickets *
+          </label>
+          <input
+            id="paxCount"
+            type="number"
+            step="1"
+            min="1"
+            required
+            className={inputClass}
+            value={values.paxCount}
+            onChange={(e) => update("paxCount", e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="supplier">
+            Supplier / vendor
+          </label>
+          <input
+            id="supplier"
+            placeholder="Consolidator or GDS the ticket was bought through"
+            className={inputClass}
+            value={values.supplier}
+            onChange={(e) => update("supplier", e.target.value)}
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelClass} htmlFor="origin">
@@ -346,6 +416,21 @@ export function SaleForm({
         </div>
 
         <div>
+          <label className={labelClass} htmlFor="tripType">
+            Trip type
+          </label>
+          <select
+            id="tripType"
+            className={inputClass}
+            value={values.tripType}
+            onChange={(e) => update("tripType", e.target.value as SaleFormValues["tripType"])}
+          >
+            <option value="ONE_WAY">One-way</option>
+            <option value="ROUND_TRIP">Round-trip</option>
+          </select>
+        </div>
+
+        <div>
           <label className={labelClass} htmlFor="travelDate">
             Travel date *
           </label>
@@ -358,6 +443,22 @@ export function SaleForm({
             onChange={(e) => update("travelDate", e.target.value)}
           />
         </div>
+
+        {values.tripType === "ROUND_TRIP" && (
+          <div>
+            <label className={labelClass} htmlFor="returnDate">
+              Return date *
+            </label>
+            <input
+              id="returnDate"
+              type="date"
+              required
+              className={inputClass}
+              value={values.returnDate}
+              onChange={(e) => update("returnDate", e.target.value)}
+            />
+          </div>
+        )}
 
         <div>
           <label className={labelClass} htmlFor="saleDate">
@@ -419,6 +520,26 @@ export function SaleForm({
             <option value="PARTIAL">Partial</option>
             <option value="PAID">Paid in full</option>
           </select>
+        </div>
+
+        <div>
+          <label className={labelClass} htmlFor="amountPaid">
+            Amount paid so far (USD)
+          </label>
+          <input
+            id="amountPaid"
+            type="number"
+            step="0.01"
+            min="0"
+            className={inputClass}
+            value={values.amountPaid}
+            onChange={(e) => update("amountPaid", e.target.value)}
+          />
+          {values.salePrice && (
+            <p className="mt-1 text-xs text-slate-500">
+              Balance due: {formatMoney(Number(values.salePrice) - Number(values.amountPaid || 0))}
+            </p>
+          )}
         </div>
 
         {mode === "edit" && (

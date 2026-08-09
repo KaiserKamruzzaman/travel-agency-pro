@@ -140,6 +140,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
                 <th className="px-3 py-2 font-medium">Price</th>
                 <th className="hidden px-3 py-2 font-medium md:table-cell print:table-cell">Margin</th>
                 <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Payment</th>
+                <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Balance due</th>
                 <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 font-medium print:hidden">Actions</th>
               </tr>
@@ -161,6 +162,9 @@ export default async function SalesPage({ searchParams }: PageProps) {
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
                     <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 md:table-cell print:table-cell">{formatMoney(margin)}</td>
                     <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.paymentStatus}</td>
+                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 lg:table-cell print:table-cell">
+                      {formatMoney(Number(sale.salePrice) - Number(sale.amountPaid))}
+                    </td>
                     <td className="px-3 py-2">
                       <div className="flex flex-col gap-1">
                         <StatusBadge status={sale.status} />

@@ -33,6 +33,10 @@ const EXTRACTION_SCHEMA = {
     origin: fieldSchema("string"),
     destination: fieldSchema("string"),
     travelDate: fieldSchema("string"),
+    returnDate: fieldSchema("string"),
+    cabinClass: {
+      anyOf: [{ type: "string", enum: ["ECONOMY", "PREMIUM_ECONOMY", "BUSINESS", "FIRST"] }, { type: "null" }],
+    },
     salePrice: fieldSchema("number"),
     customerPhone: fieldSchema("string"),
     customerEmail: fieldSchema("string"),
@@ -45,6 +49,8 @@ const EXTRACTION_SCHEMA = {
     "origin",
     "destination",
     "travelDate",
+    "returnDate",
+    "cabinClass",
     "salePrice",
     "customerPhone",
     "customerEmail",
@@ -61,6 +67,9 @@ export type ExtractedSaleFields = {
   destination: string | null;
   /** ISO date (YYYY-MM-DD), or null if not found */
   travelDate: string | null;
+  /** ISO date (YYYY-MM-DD) of the return leg, or null for one-way/not found */
+  returnDate: string | null;
+  cabinClass: "ECONOMY" | "PREMIUM_ECONOMY" | "BUSINESS" | "FIRST" | null;
   salePrice: number | null;
   customerPhone: string | null;
   customerEmail: string | null;
@@ -71,8 +80,10 @@ const SYSTEM_PROMPT = `You extract structured air-ticket sale data from GDS e-ti
 
 - origin/destination: IATA airport or city codes (e.g. DAC, DXB).
 - travelDate: the outbound departure date, formatted YYYY-MM-DD.
+- returnDate: the return-leg departure date, formatted YYYY-MM-DD, only if this is a round-trip itinerary — otherwise null.
+- cabinClass: map the fare/booking class to one of ECONOMY, PREMIUM_ECONOMY, BUSINESS, FIRST if it can be determined; otherwise null.
 - salePrice: the total fare/price charged to the passenger, as a plain number with no currency symbol, if present.
-- notes: any flight number, cabin class, or other detail worth keeping that doesn't fit the other fields.
+- notes: any flight number or other detail worth keeping that doesn't fit the other fields.
 - If a field is not present in the document, return null for it. Never guess or invent a value.`;
 
 /**

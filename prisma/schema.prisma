@@ -34,6 +34,18 @@ enum EntrySource {
   DOCUMENT_UPLOAD
 }
 
+enum CabinClass {
+  ECONOMY
+  PREMIUM_ECONOMY
+  BUSINESS
+  FIRST
+}
+
+enum TripType {
+  ONE_WAY
+  ROUND_TRIP
+}
+
 enum AssetStatus {
   IN_USE
   SPARE
@@ -131,11 +143,25 @@ model Sale {
   origin        String
   destination   String
   travelDate    DateTime
+  // Round-trip sales carry a return leg; one-way leaves this null.
+  tripType      TripType   @default(ONE_WAY)
+  returnDate    DateTime?
+  cabinClass    CabinClass @default(ECONOMY)
+  // Tickets covered by this single sale record — passengerName may list
+  // several names (e.g. a family), but reports need a count to tally
+  // "tickets sold" accurately.
+  paxCount      Int        @default(1)
+  // Consolidator/GDS the ticket was bought through — distinct from costPrice,
+  // useful for supplier-negotiation reporting (requirements section 6.2).
+  supplier      String?
 
   salePrice Decimal @db.Decimal(12, 2)
   costPrice Decimal @db.Decimal(12, 2)
 
   paymentStatus PaymentStatus @default(DUE)
+  // Amount actually collected from the customer so far — paymentStatus alone
+  // doesn't say how much of a PARTIAL sale is still outstanding.
+  amountPaid    Decimal       @default(0) @db.Decimal(12, 2)
 
   customerPhone String?
   customerEmail String?
