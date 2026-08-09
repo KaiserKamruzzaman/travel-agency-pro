@@ -61,7 +61,7 @@ export default async function DashboardPage() {
             className="animate-fade-in-up overflow-hidden rounded-xl border border-sky-100 bg-white shadow-sm transition-shadow hover:shadow-md"
             style={{ animationDelay: `${100 + i * 60}ms` }}
           >
-            <div className="flex items-center justify-between border-b border-sky-100 bg-sky-50/60 px-4 py-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-sky-100 bg-sky-50/60 px-4 py-2.5">
               <Link href={`/dashboard/branches/${b.branch.id}`} className="text-sm font-medium text-slate-900 hover:text-blue-600">
                 {b.branch.name}
               </Link>

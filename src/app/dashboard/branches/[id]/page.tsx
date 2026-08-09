@@ -79,8 +79,8 @@ export default async function BranchDetailPage({ params }: PageProps) {
               <tr>
                 <th className="px-3 py-2 font-medium">Sale date</th>
                 <th className="px-3 py-2 font-medium">Passenger</th>
-                <th className="px-3 py-2 font-medium">Route</th>
-                <th className="px-3 py-2 font-medium">Employee</th>
+                <th className="hidden px-3 py-2 font-medium sm:table-cell print:table-cell">Route</th>
+                <th className="hidden px-3 py-2 font-medium md:table-cell print:table-cell">Employee</th>
                 <th className="px-3 py-2 font-medium">Price</th>
                 <th className="px-3 py-2 font-medium">Status</th>
               </tr>
@@ -90,10 +90,10 @@ export default async function BranchDetailPage({ params }: PageProps) {
                 <tr key={sale.id} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
                   <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(sale.saleDate)}</td>
                   <td className="px-3 py-2 text-slate-700">{sale.passengerName}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-slate-700">
+                  <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 sm:table-cell print:table-cell">
                     {sale.origin} → {sale.destination}
                   </td>
-                  <td className="px-3 py-2 text-slate-700">{sale.employee.name}</td>
+                  <td className="hidden px-3 py-2 text-slate-700 md:table-cell print:table-cell">{sale.employee.name}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
                   <td className="px-3 py-2">
                     <div className="flex flex-col gap-1">

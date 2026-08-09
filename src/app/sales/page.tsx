@@ -75,7 +75,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-      <div className="animate-fade-in-up mb-6 flex items-center justify-between">
+      <div className="animate-fade-in-up mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{isOwner ? "All sales" : "My sales"}</h1>
           <p className="text-sm text-slate-500">
@@ -84,7 +84,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
               : "Sales you've entered."}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ExportButtons
             csvHref={`/api/sales/export?${salesExportParams({
               q,
@@ -133,13 +133,13 @@ export default async function SalesPage({ searchParams }: PageProps) {
               <tr>
                 <th className="px-3 py-2 font-medium">Sale date</th>
                 <th className="px-3 py-2 font-medium">Passenger</th>
-                <th className="px-3 py-2 font-medium">Route</th>
-                <th className="px-3 py-2 font-medium">Airline</th>
-                {isOwner && <th className="px-3 py-2 font-medium">Branch</th>}
-                {isOwner && <th className="px-3 py-2 font-medium">Employee</th>}
+                <th className="hidden px-3 py-2 font-medium sm:table-cell print:table-cell">Route</th>
+                <th className="hidden px-3 py-2 font-medium md:table-cell print:table-cell">Airline</th>
+                {isOwner && <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Branch</th>}
+                {isOwner && <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Employee</th>}
                 <th className="px-3 py-2 font-medium">Price</th>
-                <th className="px-3 py-2 font-medium">Margin</th>
-                <th className="px-3 py-2 font-medium">Payment</th>
+                <th className="hidden px-3 py-2 font-medium md:table-cell print:table-cell">Margin</th>
+                <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Payment</th>
                 <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 font-medium print:hidden">Actions</th>
               </tr>
@@ -152,15 +152,15 @@ export default async function SalesPage({ searchParams }: PageProps) {
                   <tr key={sale.id} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(sale.saleDate)}</td>
                     <td className="px-3 py-2 text-slate-700">{sale.passengerName}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">
+                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 sm:table-cell print:table-cell">
                       {sale.origin} → {sale.destination}
                     </td>
-                    <td className="px-3 py-2 text-slate-700">{sale.airline}</td>
-                    {isOwner && <td className="px-3 py-2 text-slate-700">{sale.branch.name}</td>}
-                    {isOwner && <td className="px-3 py-2 text-slate-700">{sale.employee.name}</td>}
+                    <td className="hidden px-3 py-2 text-slate-700 md:table-cell print:table-cell">{sale.airline}</td>
+                    {isOwner && <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.branch.name}</td>}
+                    {isOwner && <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.employee.name}</td>}
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(margin)}</td>
-                    <td className="px-3 py-2 text-slate-700">{sale.paymentStatus}</td>
+                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 md:table-cell print:table-cell">{formatMoney(margin)}</td>
+                    <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.paymentStatus}</td>
                     <td className="px-3 py-2">
                       <div className="flex flex-col gap-1">
                         <StatusBadge status={sale.status} />
