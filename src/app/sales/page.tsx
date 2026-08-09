@@ -5,6 +5,7 @@ import { buildSalesWhere, getDistinctAirlines, getPaginatedSales, SALES_PAGE_SIZ
 import { formatDate, formatMoney } from "@/lib/format";
 import { VoidSaleButton } from "@/components/void-sale-button";
 import { StatusBadge } from "@/components/status-badge";
+import { EditedIndicator } from "@/components/edited-indicator";
 import { SalesFilters } from "@/components/sales-filters";
 import { Pagination } from "@/components/pagination";
 import { ExportButtons } from "@/components/export-buttons";
@@ -96,14 +97,12 @@ export default async function SalesPage({ searchParams }: PageProps) {
               paymentStatus,
             }).toString()}`}
           />
-          {!isOwner && (
-            <Link
-              href="/sales/new"
-              className="print:hidden rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98]"
-            >
-              + New sale
-            </Link>
-          )}
+          <Link
+            href="/sales/new"
+            className="print:hidden rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-sky-300/50 transition-all hover:shadow-md active:scale-[0.98]"
+          >
+            + New sale
+          </Link>
         </div>
       </div>
 
@@ -142,7 +141,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
                 <th className="px-3 py-2 font-medium">Margin</th>
                 <th className="px-3 py-2 font-medium">Payment</th>
                 <th className="px-3 py-2 font-medium">Status</th>
-                {!isOwner && <th className="px-3 py-2 font-medium print:hidden">Actions</th>}
+                <th className="px-3 py-2 font-medium print:hidden">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -163,20 +162,24 @@ export default async function SalesPage({ searchParams }: PageProps) {
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(margin)}</td>
                     <td className="px-3 py-2 text-slate-700">{sale.paymentStatus}</td>
                     <td className="px-3 py-2">
-                      <StatusBadge status={sale.status} />
+                      <div className="flex flex-col gap-1">
+                        <StatusBadge status={sale.status} />
+                        <EditedIndicator
+                          updatedAt={sale.updatedById ? sale.updatedAt : null}
+                          updatedByName={sale.updatedBy?.name}
+                        />
+                      </div>
                     </td>
-                    {!isOwner && (
-                      <td className="px-3 py-2 print:hidden">
-                        {isMine && sale.status !== "VOID" && (
-                          <div className="flex items-center gap-3">
-                            <Link href={`/sales/${sale.id}/edit`} className="text-sm font-medium text-blue-600 hover:underline">
-                              Edit
-                            </Link>
-                            <VoidSaleButton saleId={sale.id} />
-                          </div>
-                        )}
-                      </td>
-                    )}
+                    <td className="px-3 py-2 print:hidden">
+                      {isMine && sale.status !== "VOID" && (
+                        <div className="flex items-center gap-3">
+                          <Link href={`/sales/${sale.id}/edit`} className="text-sm font-medium text-blue-600 hover:underline">
+                            Edit
+                          </Link>
+                          <VoidSaleButton saleId={sale.id} />
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 );
               })}

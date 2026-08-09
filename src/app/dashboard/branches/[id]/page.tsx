@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/authz";
 import { getBranchDetail } from "@/lib/dashboard";
 import { formatDate, formatMoney } from "@/lib/format";
 import { StatusBadge } from "@/components/status-badge";
+import { EditedIndicator } from "@/components/edited-indicator";
 import { SummaryCard } from "@/components/summary-card";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -95,7 +96,13 @@ export default async function BranchDetailPage({ params }: PageProps) {
                   <td className="px-3 py-2 text-slate-700">{sale.employee.name}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
                   <td className="px-3 py-2">
-                    <StatusBadge status={sale.status} />
+                    <div className="flex flex-col gap-1">
+                      <StatusBadge status={sale.status} />
+                      <EditedIndicator
+                        updatedAt={sale.updatedById ? sale.updatedAt : null}
+                        updatedByName={sale.updatedBy?.name}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -53,6 +53,9 @@ model Branch {
   organizationId String
   name           String
   location       String?
+  // Archived rather than deleted — sales and employee history reference a
+  // branch, so it's never hard-deleted (same soft-state pattern as Sale).
+  active         Boolean  @default(true)
   createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -72,6 +75,9 @@ model User {
   email          String   @unique
   passwordHash   String
   role           Role
+  // Deactivated accounts can't log in but keep their sale history intact —
+  // same reasoning as Branch.active.
+  active         Boolean  @default(true)
   createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

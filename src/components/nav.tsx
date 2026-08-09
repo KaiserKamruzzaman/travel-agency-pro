@@ -29,6 +29,8 @@ export function Nav({ session }: { session: Session }) {
               <>
                 <NavLink href="/dashboard">Dashboard</NavLink>
                 <NavLink href="/reports">Reports</NavLink>
+                <NavLink href="/dashboard/branches">Branches</NavLink>
+                <NavLink href="/dashboard/employees">Employees</NavLink>
               </>
             )}
             <NavLink href="/sales">Sales</NavLink>
@@ -36,12 +38,12 @@ export function Nav({ session }: { session: Session }) {
         </div>
 
         <div className="flex items-center gap-3 text-sm">
-          <span className="hidden items-center gap-2 sm:flex">
-            <span className="text-slate-600">{session.user.name}</span>
+          <Link href="/profile" className="hidden items-center gap-2 sm:flex hover:text-blue-600">
+            <span className="text-slate-600 hover:text-blue-600">{session.user.name}</span>
             <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
               {isOwner ? "Owner" : "Employee"}
             </span>
-          </span>
+          </Link>
           <form action={logoutAction}>
             <button
               type="submit"

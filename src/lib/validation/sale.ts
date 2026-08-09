@@ -18,6 +18,9 @@ export const createSaleSchema = z.object({
   saleDate: z.coerce.date({ error: "Sale date is required" }),
   notes: z.string().trim().optional().or(z.literal("")),
   source: z.enum(["MANUAL", "DOCUMENT_UPLOAD"]).default("MANUAL"),
+  // Only used for owner-authored sales — an employee's branch always comes
+  // from their own account, never the request body (see POST /api/sales).
+  branchId: z.string().trim().optional(),
 });
 
 export const updateSaleSchema = createSaleSchema.partial().extend({

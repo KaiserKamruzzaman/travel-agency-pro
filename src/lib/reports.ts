@@ -239,10 +239,12 @@ export function buildReportCsv(
 }
 
 export async function getOrgFilterOptions(organizationId: string) {
+  // Not role-filtered: an owner can author sales too, so they need to show
+  // up as a filterable "seller" alongside employees.
   const [branches, employees] = await Promise.all([
     prisma.branch.findMany({ where: { organizationId }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
     prisma.user.findMany({
-      where: { organizationId, role: "EMPLOYEE" },
+      where: { organizationId },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),

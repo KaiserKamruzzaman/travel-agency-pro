@@ -46,6 +46,7 @@ export async function getPaginatedSales(where: Prisma.SaleWhereInput, page: numb
       include: {
         employee: { select: { id: true, name: true } },
         branch: { select: { id: true, name: true } },
+        updatedBy: { select: { id: true, name: true } },
       },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -63,6 +64,7 @@ export async function getAllSales(where: Prisma.SaleWhereInput) {
     include: {
       employee: { select: { id: true, name: true } },
       branch: { select: { id: true, name: true } },
+      updatedBy: { select: { id: true, name: true } },
     },
   });
 }
@@ -97,6 +99,8 @@ export function buildSalesCsv(sales: ExportableSale[]): string {
     "Customer phone",
     "Customer email",
     "Notes",
+    "Edited by",
+    "Edited at",
   ]);
   for (const sale of sales) {
     const margin = Number(sale.salePrice) - Number(sale.costPrice);
@@ -118,6 +122,8 @@ export function buildSalesCsv(sales: ExportableSale[]): string {
       sale.customerPhone ?? "",
       sale.customerEmail ?? "",
       sale.notes ?? "",
+      sale.updatedById ? sale.updatedBy?.name ?? "" : "",
+      sale.updatedById ? sale.updatedAt.toDateString() : "",
     ]);
   }
   return csv;

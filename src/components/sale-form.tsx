@@ -58,14 +58,18 @@ export function SaleForm({
   mode,
   saleId,
   initialValues,
+  branches,
 }: {
   mode: "create" | "edit";
   saleId?: string;
   initialValues?: Partial<SaleFormValues>;
+  /** Owner-only: owners aren't tied to a branch, so they pick one here. Omit for employees. */
+  branches?: { id: string; name: string }[];
 }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState<SaleFormValues>({ ...emptyValues, ...initialValues });
+  const [branchId, setBranchId] = useState(branches?.[0]?.id ?? "");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -148,6 +152,7 @@ export function SaleForm({
     };
     if (mode === "create") {
       payload.source = source;
+      if (branches) payload.branchId = branchId;
     }
     if (mode === "edit") {
       payload.status = values.status;
@@ -248,6 +253,31 @@ export function SaleForm({
 
       <div className="rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {branches && (
+          <div>
+            <label className={labelClass} htmlFor="branchId">
+              Branch *
+            </label>
+            {branches.length === 0 ? (
+              <p className="text-sm text-slate-500">No active branches — add one before recording a sale.</p>
+            ) : (
+              <select
+                id="branchId"
+                required
+                className={inputClass}
+                value={branchId}
+                onChange={(e) => setBranchId(e.target.value)}
+              >
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
+
         <div>
           <label className={labelClass} htmlFor="passengerName">
             Passenger name(s) *

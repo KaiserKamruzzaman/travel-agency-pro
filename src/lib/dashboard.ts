@@ -22,8 +22,8 @@ export async function getEndOfDaySummary(organizationId: string) {
 
   const [branches, todaySales, statusChangesToday] = await Promise.all([
     prisma.branch.findMany({
-      where: { organizationId },
-      include: { users: { where: { role: "EMPLOYEE" }, select: { id: true, name: true } } },
+      where: { organizationId, active: true },
+      include: { users: { where: { role: "EMPLOYEE", active: true }, select: { id: true, name: true } } },
       orderBy: { name: "asc" },
     }),
     prisma.sale.findMany({
@@ -62,7 +62,18 @@ export async function getEndOfDaySummary(organizationId: string) {
 
   const branchBreakdown = branches.map((branch) => {
     const branchSales = issuedToday.filter((s) => s.branchId === branch.id);
-    const employees = branch.users.map((employee) => {
+    // Branch employee accounts are known ahead of time (via the branch
+    // relation), but an owner can now sell too and isn't tied to any
+    // branch — pick up anyone who sold here today but isn't already listed,
+    // so branch totals reconcile with the per-seller rows below them.
+    const knownIds = new Set(branch.users.map((u) => u.id));
+    const extraSellers = [
+      ...new Map(
+        branchSales.filter((s) => !knownIds.has(s.employeeId)).map((s) => [s.employeeId, s.employee]),
+      ).values(),
+    ];
+    const sellers = [...branch.users, ...extraSellers];
+    const employees = sellers.map((employee) => {
       const employeeSales = branchSales.filter((s) => s.employeeId === employee.id);
       const { revenue, profit } = sumRevenueAndCost(employeeSales);
       return { employee, tickets: employeeSales.length, revenue, profit };
@@ -96,14 +107,23 @@ export async function getBranchDetail(organizationId: string, branchId: string) 
 
   const sales = await prisma.sale.findMany({
     where: { organizationId, branchId },
-    include: { employee: { select: { id: true, name: true } } },
+    include: {
+      employee: { select: { id: true, name: true } },
+      updatedBy: { select: { id: true, name: true } },
+    },
     orderBy: { saleDate: "desc" },
   });
 
   const issued = sales.filter((s) => s.status === "ISSUED");
   const { revenue, profit } = sumRevenueAndCost(issued);
 
-  const employees = branch.users.map((employee) => {
+  // See getEndOfDaySummary — an owner can sell at a branch without being
+  // one of its assigned employee accounts, so fold them in here too.
+  const knownIds = new Set(branch.users.map((u) => u.id));
+  const extraSellers = [
+    ...new Map(issued.filter((s) => !knownIds.has(s.employeeId)).map((s) => [s.employeeId, s.employee])).values(),
+  ];
+  const employees = [...branch.users, ...extraSellers].map((employee) => {
     const employeeIssued = issued.filter((s) => s.employeeId === employee.id);
     const totals = sumRevenueAndCost(employeeIssued);
     return { employee, tickets: employeeIssued.length, revenue: totals.revenue, profit: totals.profit };
@@ -120,14 +140,17 @@ export async function getBranchDetail(organizationId: string, branchId: string) 
 }
 
 export async function getEmployeeDetail(organizationId: string, employeeId: string) {
+  // No role filter — an owner can now author sales too (branchId will be
+  // null for them, which the page already handles as "no branch link").
   const employee = await prisma.user.findFirst({
-    where: { id: employeeId, organizationId, role: "EMPLOYEE" },
+    where: { id: employeeId, organizationId },
     include: { branch: { select: { id: true, name: true } } },
   });
   if (!employee) return null;
 
   const sales = await prisma.sale.findMany({
     where: { organizationId, employeeId },
+    include: { updatedBy: { select: { id: true, name: true } } },
     orderBy: { saleDate: "desc" },
   });
 
@@ -135,7 +158,7 @@ export async function getEmployeeDetail(organizationId: string, employeeId: stri
   const { revenue, profit } = sumRevenueAndCost(issued);
 
   return {
-    employee: { id: employee.id, name: employee.name, email: employee.email, branch: employee.branch },
+    employee: { id: employee.id, name: employee.name, email: employee.email, role: employee.role, branch: employee.branch },
     tickets: issued.length,
     revenue,
     profit,
