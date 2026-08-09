@@ -34,6 +34,13 @@ enum EntrySource {
   DOCUMENT_UPLOAD
 }
 
+enum AssetStatus {
+  IN_USE
+  SPARE
+  UNDER_REPAIR
+  RETIRED
+}
+
 // One agency. Every core table below carries organizationId directly
 // (not just derived through relations) so the system can be sold to
 // multiple agencies later without a schema redesign, per requirements
@@ -46,6 +53,7 @@ model Organization {
   branches Branch[]
   users    User[]
   sales    Sale[]
+  assets   Asset[]
 }
 
 model Branch {
@@ -61,6 +69,7 @@ model Branch {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   users        User[]
   sales        Sale[]
+  assets       Asset[]
 
   @@index([organizationId])
 }
@@ -86,6 +95,9 @@ model User {
   salesSold      Sale[] @relation("SaleEmployee")
   salesCreated   Sale[] @relation("SaleCreatedBy")
   salesUpdated   Sale[] @relation("SaleUpdatedBy")
+
+  assetsAssigned Asset[] @relation("AssetAssignedTo")
+  assetsCreated  Asset[] @relation("AssetCreatedBy")
 
   @@index([organizationId])
   @@index([branchId])
@@ -136,5 +148,41 @@ model Sale {
   @@index([branchId])
   @@index([employeeId])
   @@index([saleDate])
+  @@index([status])
+}
+
+// Fixed asset / equipment inventory (PCs, printers, scanners, mobiles,
+// furniture, ...) tracked per branch, alongside sales in the same app.
+model Asset {
+  id             String @id @default(cuid())
+  organizationId String
+  branchId       String
+
+  name     String
+  category String
+  // Set only for individually-tracked items (e.g. a specific laptop).
+  // Left null for bulk/untracked items, where `quantity` may be > 1.
+  serialNumber String?
+  quantity     Int     @default(1)
+
+  status       AssetStatus @default(IN_USE)
+  // Employee currently holding custody of this item, if applicable.
+  assignedToId String?
+
+  purchaseDate  DateTime?
+  purchasePrice Decimal?  @db.Decimal(12, 2)
+  notes         String?
+
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       Branch       @relation(fields: [branchId], references: [id])
+  assignedTo   User?        @relation("AssetAssignedTo", fields: [assignedToId], references: [id])
+  createdBy    User         @relation("AssetCreatedBy", fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@index([branchId])
   @@index([status])
 }
