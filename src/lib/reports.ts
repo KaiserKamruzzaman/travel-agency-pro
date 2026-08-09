@@ -75,6 +75,20 @@ function groupSummary<T extends GroupableSale>(items: T[], keyFn: (item: T) => s
     .sort((a, b) => b.revenue - a.revenue);
 }
 
+const PAYMENT_STATUSES = ["PAID", "PARTIAL", "DUE"] as const;
+const CANCELLATION_STATUSES = ["CANCELLED", "REFUNDED", "VOID"] as const;
+
+function statusSummary<S extends string>(items: { status: S; salePrice: unknown }[], statuses: readonly S[]) {
+  const map = new Map(statuses.map((s) => [s, { status: s as string, tickets: 0, revenue: 0 }]));
+  for (const item of items) {
+    const entry = map.get(item.status);
+    if (!entry) continue;
+    entry.tickets += 1;
+    entry.revenue += Number(item.salePrice);
+  }
+  return [...map.values()];
+}
+
 const dayLabelFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
 const monthLabelFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" });
 
@@ -145,9 +159,24 @@ export async function getSalesReport(
   ]);
 
   const issued = sales.filter((s) => s.status === "ISSUED");
+  const notIssued = sales.filter((s) => s.status !== "ISSUED");
   const totals = sumRevenueAndCost(issued);
   const tickets = issued.length;
   const avgSale = tickets > 0 ? totals.revenue / tickets : 0;
+
+  // Payment status isn't hard revenue at risk (PARTIAL sales don't record
+  // how much remains unpaid) — it's a proxy for "needs following up on".
+  const byPaymentStatus = statusSummary(
+    issued.map((s) => ({ status: s.paymentStatus, salePrice: s.salePrice })),
+    PAYMENT_STATUSES,
+  );
+  const outstanding = byPaymentStatus.filter((r) => r.status !== "PAID").reduce((sum, r) => sum + r.revenue, 0);
+
+  // Cancelled/refunded/void sales are excluded from every revenue metric
+  // above by design, but owners still need to see how much fell through.
+  const byCancellationStatus = statusSummary(notIssued, CANCELLATION_STATUSES);
+  const cancelledTickets = notIssued.length;
+  const lostRevenue = byCancellationStatus.reduce((sum, r) => sum + r.revenue, 0);
 
   const byBranch = groupSummary(issued, (s) => s.branchId, (s) => s.branch.name);
   const byEmployee = groupSummary(issued, (s) => s.employeeId, (s) => s.employee.name);
@@ -186,6 +215,9 @@ export async function getSalesReport(
       avgSale,
       expenses: expenses.total,
       netProfit: totals.profit - expenses.total,
+      outstanding,
+      cancelledTickets,
+      lostRevenue,
     },
     topBranch: byBranch[0] ?? null,
     topEmployee: byEmployee[0] ?? null,
@@ -194,6 +226,8 @@ export async function getSalesReport(
     byRoute,
     byAirline,
     byExpenseCategory: expenses.byCategory,
+    byPaymentStatus,
+    byCancellationStatus,
     trend,
   };
 }
@@ -213,6 +247,13 @@ function csvSection(title: string, rows: SummaryRow[]): string {
   let csv = csvRow([title]);
   csv += csvRow(["Name", "Tickets", "Revenue", "Profit"]);
   for (const row of rows) csv += csvRow([row.label, row.tickets, row.revenue.toFixed(2), row.profit.toFixed(2)]);
+  return csv + "\r\n";
+}
+
+function csvStatusSection(title: string, rows: { status: string; tickets: number; revenue: number }[]): string {
+  let csv = csvRow([title]);
+  csv += csvRow(["Status", "Tickets", "Revenue"]);
+  for (const row of rows) csv += csvRow([row.status, row.tickets, row.revenue.toFixed(2)]);
   return csv + "\r\n";
 }
 
@@ -237,6 +278,9 @@ export function buildReportCsv(
   csv += csvRow(["Operating expenses", report.totals.expenses.toFixed(2)]);
   csv += csvRow(["Net profit (after expenses)", report.totals.netProfit.toFixed(2)]);
   csv += csvRow(["Average sale value", report.totals.avgSale.toFixed(2)]);
+  csv += csvRow(["Outstanding (partial + due)", report.totals.outstanding.toFixed(2)]);
+  csv += csvRow(["Cancelled/refunded/void tickets", report.totals.cancelledTickets]);
+  csv += csvRow(["Lost revenue (cancelled/refunded/void)", report.totals.lostRevenue.toFixed(2)]);
   csv += csvRow(["Top branch", report.topBranch?.label ?? "—"]);
   csv += csvRow(["Top employee", report.topEmployee?.label ?? "—"]);
   csv += "\r\n";
@@ -250,6 +294,9 @@ export function buildReportCsv(
   csv += csvRow(["Category", "Amount"]);
   for (const row of report.byExpenseCategory) csv += csvRow([row.category, row.total.toFixed(2)]);
   csv += "\r\n";
+
+  csv += csvStatusSection("Payment status", report.byPaymentStatus);
+  csv += csvStatusSection("Cancellations & refunds", report.byCancellationStatus);
 
   csv += csvRow(["Trend"]);
   csv += csvRow(["Period", "Tickets", "Revenue", "Profit"]);
