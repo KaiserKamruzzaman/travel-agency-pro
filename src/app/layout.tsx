@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/auth";
 import { Nav } from "@/components/nav";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,8 +29,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {session?.user && <Nav session={session} />}
-        <div className="flex flex-1 flex-col">{children}</div>
+        <ConfirmProvider>
+          {session?.user && <Nav session={session} />}
+          <div className="flex flex-1 flex-col">{children}</div>
+        </ConfirmProvider>
       </body>
     </html>
   );

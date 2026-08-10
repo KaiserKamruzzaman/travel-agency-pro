@@ -2,13 +2,21 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export function VoidSaleButton({ saleId }: { saleId: string }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [pending, setPending] = useState(false);
 
   async function handleClick() {
-    if (!confirm("Void this sale? It will be kept for audit history but marked void.")) return;
+    const ok = await confirm({
+      title: "Void this sale?",
+      description: "It will be kept for audit history but marked void.",
+      confirmLabel: "Void sale",
+      variant: "danger",
+    });
+    if (!ok) return;
     setPending(true);
     const res = await fetch(`/api/sales/${saleId}`, { method: "DELETE" });
     setPending(false);

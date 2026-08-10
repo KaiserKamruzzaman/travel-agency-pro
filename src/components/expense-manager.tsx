@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import type { ExpenseCategory } from "@/generated/prisma/client";
 import { formatMoney, formatDate, toDateInputValue } from "@/lib/format";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type ManagedExpense = {
   id: string;
@@ -270,6 +271,7 @@ function ExpenseRow({
   employees: Option[];
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [description, setDescription] = useState(expense.description);
   const [category, setCategory] = useState<ExpenseCategory>(expense.category);
@@ -327,7 +329,15 @@ function ExpenseRow({
   }
 
   async function handleVoidToggle() {
-    if (!expense.voided && !confirm(`Void "${expense.description}"? It stops counting toward totals.`)) return;
+    if (!expense.voided) {
+      const ok = await confirm({
+        title: `Void "${expense.description}"?`,
+        description: "It stops counting toward totals.",
+        confirmLabel: "Void expense",
+        variant: "danger",
+      });
+      if (!ok) return;
+    }
     await patch({ voided: !expense.voided });
   }
 

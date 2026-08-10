@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import type { AssetStatus } from "@/generated/prisma/client";
 import { formatMoney, formatDate, toDateInputValue } from "@/lib/format";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type ManagedAsset = {
   id: string;
@@ -293,6 +294,7 @@ export function AssetManager({
 
 function AssetRow({ asset, branches, employees }: { asset: ManagedAsset; branches: Option[]; employees: Option[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(asset.name);
   const [category, setCategory] = useState(asset.category);
@@ -354,7 +356,15 @@ function AssetRow({ asset, branches, employees }: { asset: ManagedAsset; branche
   }
 
   async function handleStatusChange(status: AssetStatus) {
-    if (status === "RETIRED" && !confirm(`Retire ${asset.name}? It stops appearing as an active asset.`)) return;
+    if (status === "RETIRED") {
+      const ok = await confirm({
+        title: `Retire ${asset.name}?`,
+        description: "It stops appearing as an active asset.",
+        confirmLabel: "Retire",
+        variant: "danger",
+      });
+      if (!ok) return;
+    }
     await patch({ status });
   }
 

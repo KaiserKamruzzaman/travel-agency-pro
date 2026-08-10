@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type ManagedEmployee = {
   id: string;
@@ -166,6 +167,7 @@ export function EmployeeManager({ employees, branches }: { employees: ManagedEmp
 
 function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branches: BranchOption[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [name, setName] = useState(employee.name);
@@ -226,7 +228,15 @@ function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branch
   }
 
   async function handleToggleActive() {
-    if (employee.active && !confirm(`Deactivate ${employee.name}? They'll no longer be able to log in.`)) return;
+    if (employee.active) {
+      const ok = await confirm({
+        title: `Deactivate ${employee.name}?`,
+        description: "They'll no longer be able to log in.",
+        confirmLabel: "Deactivate",
+        variant: "danger",
+      });
+      if (!ok) return;
+    }
     await patch({ active: !employee.active });
   }
 

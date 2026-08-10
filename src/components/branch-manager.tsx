@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 export type ManagedBranch = {
   id: string;
@@ -123,6 +124,7 @@ export function BranchManager({ branches }: { branches: ManagedBranch[] }) {
 
 function BranchRow({ branch }: { branch: ManagedBranch }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(branch.name);
   const [location, setLocation] = useState(branch.location ?? "");
@@ -159,8 +161,14 @@ function BranchRow({ branch }: { branch: ManagedBranch }) {
   }
 
   async function handleToggleActive() {
-    if (branch.active && !confirm(`Archive ${branch.name}? It stops appearing for new sales/employee assignment.`)) {
-      return;
+    if (branch.active) {
+      const ok = await confirm({
+        title: `Archive ${branch.name}?`,
+        description: "It stops appearing for new sales/employee assignment.",
+        confirmLabel: "Archive",
+        variant: "danger",
+      });
+      if (!ok) return;
     }
     await patch({ active: !branch.active });
   }
