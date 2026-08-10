@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sumRevenueAndCost } from "@/lib/sale-metrics";
 import { getExpenseTotals } from "@/lib/expenses";
+import { SERVICE_TYPE_LABEL } from "@/lib/service-types";
 
 export type ReportPreset = "week" | "month" | "year" | "custom";
 export type ReportGranularity = "day" | "month";
@@ -180,12 +181,17 @@ export async function getSalesReport(
 
   const byBranch = groupSummary(issued, (s) => s.branchId, (s) => s.branch.name);
   const byEmployee = groupSummary(issued, (s) => s.employeeId, (s) => s.employee.name);
+  const byServiceType = groupSummary(issued, (s) => s.serviceType, (s) => SERVICE_TYPE_LABEL[s.serviceType]);
+
+  // Route/airline breakdowns only make sense for AIR_TICKET sales — other
+  // service types leave origin/destination/airline null.
+  const airTicketSales = issued.filter((s) => s.serviceType === "AIR_TICKET");
   const byRoute = groupSummary(
-    issued,
+    airTicketSales,
     (s) => `${s.origin}-${s.destination}`,
     (s) => `${s.origin} → ${s.destination}`,
   ).slice(0, 5);
-  const byAirline = groupSummary(issued, (s) => s.airline, (s) => s.airline).slice(0, 5);
+  const byAirline = groupSummary(airTicketSales, (s) => s.airline as string, (s) => s.airline as string).slice(0, 5);
 
   const trendTotals = new Map<string, { tickets: number; revenue: number; cost: number }>();
   for (const key of enumerateBucketKeys(start, end, granularity)) trendTotals.set(key, { tickets: 0, revenue: 0, cost: 0 });
@@ -223,6 +229,7 @@ export async function getSalesReport(
     topEmployee: byEmployee[0] ?? null,
     byBranch,
     byEmployee,
+    byServiceType,
     byRoute,
     byAirline,
     byExpenseCategory: expenses.byCategory,
@@ -287,6 +294,7 @@ export function buildReportCsv(
 
   csv += csvSection("By branch", report.byBranch);
   csv += csvSection("By employee", report.byEmployee);
+  csv += csvSection("By service type", report.byServiceType);
   csv += csvSection("Top routes", report.byRoute);
   csv += csvSection("Top airlines", report.byAirline);
 

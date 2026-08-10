@@ -134,6 +134,10 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         </div>
       </Section>
 
+      <Section title="By service type">
+        <BreakdownTable title="Revenue mix across services" rows={report.byServiceType} />
+      </Section>
+
       <Section title="Sales mix" last>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <TopList title="Top routes" rows={report.byRoute} />

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { apiErrorResponse, requireSession, saleScopeWhere } from "@/lib/authz";
 import { buildSalesCsv, buildSalesWhere, getAllSales } from "@/lib/sales";
 import { toDateInputValue } from "@/lib/format";
-import { PaymentStatus, SaleStatus } from "@/generated/prisma/client";
+import { PaymentStatus, SaleStatus, ServiceType } from "@/generated/prisma/client";
 
 function parseDate(value: string | null): Date | undefined {
   if (!value) return undefined;
@@ -24,6 +24,11 @@ export async function GET(req: NextRequest) {
     const branchId = isOwner ? sp.get("branchId") || undefined : undefined;
     const employeeId = isOwner ? sp.get("employeeId") || undefined : undefined;
     const airline = sp.get("airline") || undefined;
+    const serviceTypeParam = sp.get("serviceType");
+    const serviceType =
+      serviceTypeParam && (Object.values(ServiceType) as string[]).includes(serviceTypeParam)
+        ? (serviceTypeParam as ServiceType)
+        : undefined;
     const statusParam = sp.get("status");
     const status =
       statusParam && (Object.values(SaleStatus) as string[]).includes(statusParam)
@@ -40,7 +45,7 @@ export async function GET(req: NextRequest) {
     const to = toRaw ? new Date(toRaw.getFullYear(), toRaw.getMonth(), toRaw.getDate() + 1) : undefined;
 
     const scope = saleScopeWhere(session.user);
-    const where = buildSalesWhere(scope, { from, to, branchId, employeeId, airline, status, paymentStatus, q });
+    const where = buildSalesWhere(scope, { from, to, branchId, employeeId, airline, serviceType, status, paymentStatus, q });
 
     const sales = await getAllSales(where);
     const csv = buildSalesCsv(sales);

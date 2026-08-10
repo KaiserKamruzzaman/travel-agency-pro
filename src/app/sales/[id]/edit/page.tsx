@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/authz";
 import { SaleForm, type SaleFormValues } from "@/components/sale-form";
 import { toDateInputValue } from "@/lib/format";
+import { serviceAttributesToFormValues } from "@/lib/service-fields";
 
 export default async function EditSalePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await requireSession();
@@ -15,11 +16,13 @@ export default async function EditSalePage({ params }: { params: Promise<{ id: s
   if (!sale) notFound();
 
   const initialValues: Partial<SaleFormValues> = {
+    serviceType: sale.serviceType,
     passengerName: sale.passengerName,
     pnr: sale.pnr ?? "",
-    airline: sale.airline,
-    origin: sale.origin,
-    destination: sale.destination,
+    airline: sale.airline ?? "",
+    origin: sale.origin ?? "",
+    destination: sale.destination ?? "",
+    serviceAttributes: serviceAttributesToFormValues(sale.serviceAttributes),
     travelDate: toDateInputValue(sale.travelDate),
     tripType: sale.tripType,
     returnDate: sale.returnDate ? toDateInputValue(sale.returnDate) : "",

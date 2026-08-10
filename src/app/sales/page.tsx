@@ -9,7 +9,9 @@ import { EditedIndicator } from "@/components/edited-indicator";
 import { SalesFilters } from "@/components/sales-filters";
 import { Pagination } from "@/components/pagination";
 import { ExportButtons } from "@/components/export-buttons";
-import { PaymentStatus, SaleStatus } from "@/generated/prisma/client";
+import { PaymentStatus, SaleStatus, ServiceType } from "@/generated/prisma/client";
+import { SERVICE_TYPE_LABEL } from "@/lib/service-types";
+import { formatServiceAttributes } from "@/lib/service-fields";
 
 type SearchParams = { [key: string]: string | string[] | undefined };
 type PageProps = { searchParams: Promise<SearchParams> };
@@ -43,6 +45,11 @@ export default async function SalesPage({ searchParams }: PageProps) {
   const branchId = isOwner ? firstParam(sp.branchId) || undefined : undefined;
   const employeeId = isOwner ? firstParam(sp.employeeId) || undefined : undefined;
   const airline = firstParam(sp.airline) || undefined;
+  const serviceTypeParam = firstParam(sp.serviceType);
+  const serviceType =
+    serviceTypeParam && (Object.values(ServiceType) as string[]).includes(serviceTypeParam)
+      ? (serviceTypeParam as ServiceType)
+      : undefined;
   const statusParam = firstParam(sp.status);
   const status = statusParam && (Object.values(SaleStatus) as string[]).includes(statusParam)
     ? (statusParam as SaleStatus)
@@ -61,7 +68,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
   const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
 
   const scope = saleScopeWhere(session.user);
-  const where = buildSalesWhere(scope, { from, to, branchId, employeeId, airline, status, paymentStatus, q });
+  const where = buildSalesWhere(scope, { from, to, branchId, employeeId, airline, serviceType, status, paymentStatus, q });
 
   const [{ sales, total, pageCount }, filterOptions, airlines] = await Promise.all([
     getPaginatedSales(where, page),
@@ -70,7 +77,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
   ]);
 
   const hasActiveFilters = Boolean(
-    q || fromParam || toParam || branchId || employeeId || airline || status || paymentStatus,
+    q || fromParam || toParam || branchId || employeeId || airline || serviceType || status || paymentStatus,
   );
 
   return (
@@ -93,6 +100,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
               branchId,
               employeeId,
               airline,
+              serviceType,
               status,
               paymentStatus,
             }).toString()}`}
@@ -118,6 +126,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
           branchId,
           employeeId,
           airline,
+          serviceType,
           status,
           paymentStatus,
         }}
@@ -132,9 +141,9 @@ export default async function SalesPage({ searchParams }: PageProps) {
             <thead className="bg-sky-50/60 text-slate-500">
               <tr>
                 <th className="px-3 py-2 font-medium">Sale date</th>
-                <th className="px-3 py-2 font-medium">Passenger</th>
-                <th className="hidden px-3 py-2 font-medium sm:table-cell print:table-cell">Route</th>
-                <th className="hidden px-3 py-2 font-medium md:table-cell print:table-cell">Airline</th>
+                <th className="px-3 py-2 font-medium">Name</th>
+                <th className="px-3 py-2 font-medium">Service</th>
+                <th className="hidden px-3 py-2 font-medium sm:table-cell print:table-cell">Details</th>
                 {isOwner && <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Branch</th>}
                 {isOwner && <th className="hidden px-3 py-2 font-medium lg:table-cell print:table-cell">Employee</th>}
                 <th className="px-3 py-2 font-medium">Price</th>
@@ -153,10 +162,12 @@ export default async function SalesPage({ searchParams }: PageProps) {
                   <tr key={sale.id} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(sale.saleDate)}</td>
                     <td className="px-3 py-2 text-slate-700">{sale.passengerName}</td>
-                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 sm:table-cell print:table-cell">
-                      {sale.origin} → {sale.destination}
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{SERVICE_TYPE_LABEL[sale.serviceType]}</td>
+                    <td className="hidden px-3 py-2 text-slate-700 sm:table-cell print:table-cell">
+                      {sale.serviceType === "AIR_TICKET"
+                        ? `${sale.origin} → ${sale.destination} (${sale.airline})`
+                        : formatServiceAttributes(sale.serviceType, sale.serviceAttributes) || "—"}
                     </td>
-                    <td className="hidden px-3 py-2 text-slate-700 md:table-cell print:table-cell">{sale.airline}</td>
                     {isOwner && <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.branch.name}</td>}
                     {isOwner && <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.employee.name}</td>}
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
@@ -194,7 +205,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
 
       <Pagination
         basePath="/sales"
-        searchParams={{ q, from: fromParam, to: toParam, branchId, employeeId, airline, status, paymentStatus }}
+        searchParams={{ q, from: fromParam, to: toParam, branchId, employeeId, airline, serviceType, status, paymentStatus }}
         page={page}
         pageCount={pageCount}
         total={total}

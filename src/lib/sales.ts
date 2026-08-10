@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma, PaymentStatus, SaleStatus } from "@/generated/prisma/client";
+import type { Prisma, PaymentStatus, SaleStatus, ServiceType } from "@/generated/prisma/client";
+import { SERVICE_TYPE_LABEL } from "@/lib/service-types";
+import { formatServiceAttributes } from "@/lib/service-fields";
 
 export const SALES_PAGE_SIZE = 20;
 
@@ -9,6 +11,7 @@ export type SalesListFilters = {
   branchId?: string;
   employeeId?: string;
   airline?: string;
+  serviceType?: ServiceType;
   status?: SaleStatus;
   paymentStatus?: PaymentStatus;
   q?: string;
@@ -27,6 +30,7 @@ export function buildSalesWhere(scope: Prisma.SaleWhereInput, filters: SalesList
     ...(filters.branchId && { branchId: filters.branchId }),
     ...(filters.employeeId && { employeeId: filters.employeeId }),
     ...(filters.airline && { airline: filters.airline }),
+    ...(filters.serviceType && { serviceType: filters.serviceType }),
     ...(filters.status && { status: filters.status }),
     ...(filters.paymentStatus && { paymentStatus: filters.paymentStatus }),
     ...(filters.q && {
@@ -83,16 +87,18 @@ function csvRow(fields: (string | number)[]): string {
 export function buildSalesCsv(sales: ExportableSale[]): string {
   let csv = csvRow([
     "Sale date",
-    "Passenger",
+    "Service type",
+    "Name",
     "PNR",
     "Airline",
     "Origin",
     "Destination",
+    "Service details",
     "Travel date",
     "Trip type",
     "Return date",
     "Cabin class",
-    "Passengers",
+    "Units",
     "Supplier",
     "Branch",
     "Employee",
@@ -114,11 +120,13 @@ export function buildSalesCsv(sales: ExportableSale[]): string {
     const balanceDue = Number(sale.salePrice) - Number(sale.amountPaid);
     csv += csvRow([
       sale.saleDate.toDateString(),
+      SERVICE_TYPE_LABEL[sale.serviceType],
       sale.passengerName,
       sale.pnr ?? "",
-      sale.airline,
-      sale.origin,
-      sale.destination,
+      sale.airline ?? "",
+      sale.origin ?? "",
+      sale.destination ?? "",
+      formatServiceAttributes(sale.serviceType, sale.serviceAttributes),
       sale.travelDate.toDateString(),
       sale.tripType,
       sale.returnDate ? sale.returnDate.toDateString() : "",
@@ -145,11 +153,13 @@ export function buildSalesCsv(sales: ExportableSale[]): string {
 }
 
 export async function getDistinctAirlines(scope: Prisma.SaleWhereInput) {
+  // Only AIR_TICKET sales carry an airline — other service types leave it
+  // null, which would otherwise surface as a blank option in the filter.
   const rows = await prisma.sale.findMany({
-    where: scope,
+    where: { ...scope, airline: { not: null } },
     select: { airline: true },
     distinct: ["airline"],
     orderBy: { airline: "asc" },
   });
-  return rows.map((r) => r.airline);
+  return rows.map((r) => r.airline as string);
 }

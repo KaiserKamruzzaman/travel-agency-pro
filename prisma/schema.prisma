@@ -62,6 +62,19 @@ enum ExpenseCategory {
   OTHER
 }
 
+// What kind of service a Sale represents. Agents sell more than just air
+// tickets — this drives which fields the sale form/report show, per
+// requirements section 4 (the same Sale record backs every service type,
+// not a separate table per type).
+enum ServiceType {
+  AIR_TICKET
+  HOTEL
+  VISA
+  TOUR_PACKAGE
+  INSURANCE
+  OTHER
+}
+
 // One agency. Every core table below carries organizationId directly
 // (not just derived through relations) so the system can be sold to
 // multiple agencies later without a schema redesign, per requirements
@@ -137,23 +150,41 @@ model Sale {
   branchId       String
   employeeId     String
 
+  // What's being sold on this record. Defaults to AIR_TICKET since that's
+  // the primary business (requirements section 1); the fields below that
+  // only make sense for a flight are optional so other service types can
+  // leave them null instead of forking into a separate table per type.
+  serviceType ServiceType @default(AIR_TICKET)
+
   passengerName String
   pnr           String?
-  airline       String
-  origin        String
-  destination   String
-  travelDate    DateTime
-  // Round-trip sales carry a return leg; one-way leaves this null.
-  tripType      TripType   @default(ONE_WAY)
-  returnDate    DateTime?
-  cabinClass    CabinClass @default(ECONOMY)
-  // Tickets covered by this single sale record — passengerName may list
-  // several names (e.g. a family), but reports need a count to tally
+  airline       String?
+  origin        String?
+  destination   String?
+  // Doubles as the generic "when does this service happen" date across
+  // every service type (check-in, visa needed-by, tour departure, coverage
+  // start), relabeled per type in the UI — not just an air-ticket field.
+  travelDate DateTime
+  // Round-trip sales carry a return leg; one-way leaves this null. Also
+  // reused (independent of tripType) as an optional end date for services
+  // that have one — hotel check-out, tour return, insurance coverage end.
+  tripType   TripType   @default(ONE_WAY)
+  returnDate DateTime?
+  cabinClass CabinClass @default(ECONOMY)
+  // Tickets/units covered by this single sale record — passengerName may
+  // list several names (e.g. a family), but reports need a count to tally
   // "tickets sold" accurately.
   paxCount      Int        @default(1)
-  // Consolidator/GDS the ticket was bought through — distinct from costPrice,
-  // useful for supplier-negotiation reporting (requirements section 6.2).
+  // Consolidator/GDS/vendor the service was bought through — distinct from
+  // costPrice, useful for supplier-negotiation reporting (requirements 6.2).
   supplier      String?
+  // Structured, per-service-type fields for everything that doesn't fit a
+  // shared column (hotel name/room, visa destination/type, package name,
+  // insurance policy type, ...) — schema for each serviceType lives in
+  // src/lib/service-fields.ts rather than as dedicated columns, so adding
+  // or adjusting a service's fields doesn't require a migration. Null for
+  // AIR_TICKET, which uses the dedicated columns above instead.
+  serviceAttributes Json?
 
   salePrice Decimal @db.Decimal(12, 2)
   costPrice Decimal @db.Decimal(12, 2)
@@ -189,6 +220,7 @@ model Sale {
   @@index([employeeId])
   @@index([saleDate])
   @@index([status])
+  @@index([serviceType])
 }
 
 // Fixed asset / equipment inventory (PCs, printers, scanners, mobiles,

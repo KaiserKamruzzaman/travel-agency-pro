@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { apiErrorResponse, requireSession, ApiError } from "@/lib/authz";
 import { createSaleSchema } from "@/lib/validation/sale";
+import { buildServiceAttributesSchema, isNonAirServiceType } from "@/lib/service-fields";
 
 // No GET here — the sales list pages (owner and employee) read directly via
 // lib/sales.ts's paginated/filtered queries server-side. An unpaginated
@@ -42,19 +44,29 @@ export async function POST(req: NextRequest) {
       branchId = branch.id;
     }
 
+    const isAirTicket = data.serviceType === "AIR_TICKET";
+    // Already validated against the right shape for this serviceType by
+    // createSaleSchema's cross-check — re-parsing here just strips any
+    // fields that don't belong to it before it's persisted.
+    const serviceAttributes = isNonAirServiceType(data.serviceType)
+      ? (buildServiceAttributesSchema(data.serviceType).parse(data.serviceAttributes ?? {}) as Prisma.InputJsonValue)
+      : undefined;
+
     const sale = await prisma.sale.create({
       data: {
         organizationId: session.user.organizationId,
         branchId,
         employeeId: session.user.id,
+        serviceType: data.serviceType,
         passengerName: data.passengerName,
-        pnr: data.pnr || null,
-        airline: data.airline,
-        origin: data.origin,
-        destination: data.destination,
+        pnr: isAirTicket ? data.pnr || null : null,
+        airline: isAirTicket ? data.airline || null : null,
+        origin: isAirTicket ? data.origin || null : null,
+        destination: isAirTicket ? data.destination || null : null,
+        serviceAttributes,
         travelDate: data.travelDate,
-        tripType: data.tripType,
-        returnDate: data.tripType === "ROUND_TRIP" ? data.returnDate : null,
+        tripType: isAirTicket ? data.tripType : "ONE_WAY",
+        returnDate: isAirTicket ? (data.tripType === "ROUND_TRIP" ? data.returnDate : null) : (data.returnDate ?? null),
         cabinClass: data.cabinClass,
         paxCount: data.paxCount,
         supplier: data.supplier || null,

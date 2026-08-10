@@ -3,13 +3,25 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { formatMoney } from "@/lib/format";
+import {
+  SERVICE_TYPE_OPTIONS,
+  SERVICE_DATE_LABEL,
+  SERVICE_RETURN_DATE_LABEL,
+  SERVICE_PAX_LABEL,
+  SERVICE_NAME_LABEL,
+} from "@/lib/service-types";
+import { SERVICE_FIELDS, isNonAirServiceType, type ServiceFieldDef } from "@/lib/service-fields";
 
 export type SaleFormValues = {
+  serviceType: "AIR_TICKET" | "HOTEL" | "VISA" | "TOUR_PACKAGE" | "INSURANCE" | "OTHER";
   passengerName: string;
   pnr: string;
   airline: string;
   origin: string;
   destination: string;
+  // Per-service-type fields (hotel name, visa type, ...) — shape varies by
+  // serviceType, defined in src/lib/service-fields.ts rather than here.
+  serviceAttributes: Record<string, string>;
   travelDate: string;
   tripType: "ONE_WAY" | "ROUND_TRIP";
   returnDate: string;
@@ -43,11 +55,13 @@ type ExtractedSaleFields = {
 };
 
 const emptyValues: SaleFormValues = {
+  serviceType: "AIR_TICKET",
   passengerName: "",
   pnr: "",
   airline: "",
   origin: "",
   destination: "",
+  serviceAttributes: {},
   travelDate: "",
   tripType: "ONE_WAY",
   returnDate: "",
@@ -68,6 +82,54 @@ const emptyValues: SaleFormValues = {
 const inputClass =
   "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
 const labelClass = "block text-sm font-medium mb-1 text-slate-700";
+
+function ServiceFieldInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: ServiceFieldDef;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const fieldId = `svc-${field.key}`;
+  if (field.type === "select") {
+    return (
+      <select id={fieldId} required={field.required} className={inputClass} value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">{field.required ? "Select…" : "—"}</option>
+        {field.options?.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  if (field.type === "textarea") {
+    return (
+      <textarea
+        id={fieldId}
+        required={field.required}
+        rows={2}
+        placeholder={field.placeholder}
+        className={inputClass}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
+  }
+  return (
+    <input
+      id={fieldId}
+      type={field.type === "date" ? "date" : field.type === "number" ? "number" : "text"}
+      required={field.required}
+      placeholder={field.placeholder}
+      className={inputClass}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
 
 export function SaleForm({
   mode,
@@ -94,8 +156,25 @@ export function SaleForm({
   const [extractError, setExtractError] = useState<string | null>(null);
   const [extractNotice, setExtractNotice] = useState<string | null>(null);
 
+  const isAirTicket = values.serviceType === "AIR_TICKET";
+  // Round-trip return date for AIR_TICKET; for other types it's an
+  // optional end date (check-out, coverage end, ...) only where one
+  // actually applies — visa/other don't get a return-date field at all.
+  const showReturnDate = isAirTicket ? values.tripType === "ROUND_TRIP" : Boolean(SERVICE_RETURN_DATE_LABEL[values.serviceType]);
+  const returnDateLabel = isAirTicket ? "Return date" : (SERVICE_RETURN_DATE_LABEL[values.serviceType] ?? "Return date");
+
   function update<K extends keyof SaleFormValues>(key: K, value: SaleFormValues[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function updateAttr(key: string, value: string) {
+    setValues((prev) => ({ ...prev, serviceAttributes: { ...prev.serviceAttributes, [key]: value } }));
+  }
+
+  function updateServiceType(next: SaleFormValues["serviceType"]) {
+    // Different type, different fields — stale attributes from the
+    // previous type shouldn't silently ride along.
+    setValues((prev) => ({ ...prev, serviceType: next, serviceAttributes: {} }));
   }
 
   async function handleExtract(file: File | null) {
@@ -154,15 +233,17 @@ export function SaleForm({
     const method = mode === "create" ? "POST" : "PATCH";
 
     const payload: Record<string, unknown> = {
+      serviceType: values.serviceType,
       passengerName: values.passengerName,
-      pnr: values.pnr,
-      airline: values.airline,
-      origin: values.origin,
-      destination: values.destination,
+      pnr: isAirTicket ? values.pnr : undefined,
+      airline: isAirTicket ? values.airline : undefined,
+      origin: isAirTicket ? values.origin : undefined,
+      destination: isAirTicket ? values.destination : undefined,
+      serviceAttributes: isAirTicket ? undefined : values.serviceAttributes,
       travelDate: values.travelDate,
-      tripType: values.tripType,
-      returnDate: values.tripType === "ROUND_TRIP" ? values.returnDate : undefined,
-      cabinClass: values.cabinClass,
+      tripType: isAirTicket ? values.tripType : undefined,
+      returnDate: showReturnDate ? values.returnDate : undefined,
+      cabinClass: isAirTicket ? values.cabinClass : undefined,
       paxCount: values.paxCount,
       supplier: values.supplier,
       salePrice: values.salePrice,
@@ -215,7 +296,7 @@ export function SaleForm({
         </p>
       )}
 
-      {mode === "create" && (
+      {mode === "create" && isAirTicket && (
         <div className="rounded-xl border border-sky-100 bg-sky-50/40 p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-800">Import from document (optional)</h2>
           <p className="mt-1 text-sm text-slate-500">
@@ -277,6 +358,26 @@ export function SaleForm({
 
       <div className="rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label className={labelClass} htmlFor="serviceType">
+            Service type *
+          </label>
+          <select
+            id="serviceType"
+            required
+            className={inputClass}
+            value={values.serviceType}
+            onChange={(e) => updateServiceType(e.target.value as SaleFormValues["serviceType"])}
+          >
+            {SERVICE_TYPE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500">Choose the service being sold — the fields below adjust to match.</p>
+        </div>
+
         {branches && (
           <div>
             <label className={labelClass} htmlFor="branchId">
@@ -304,7 +405,7 @@ export function SaleForm({
 
         <div>
           <label className={labelClass} htmlFor="passengerName">
-            Passenger name(s) *
+            {SERVICE_NAME_LABEL[values.serviceType]} *
           </label>
           <input
             id="passengerName"
@@ -315,51 +416,69 @@ export function SaleForm({
           />
         </div>
 
-        <div>
-          <label className={labelClass} htmlFor="pnr">
-            PNR / booking reference
-          </label>
-          <input
-            id="pnr"
-            className={inputClass}
-            value={values.pnr}
-            onChange={(e) => update("pnr", e.target.value)}
-          />
-        </div>
+        {isAirTicket ? (
+          <>
+            <div>
+              <label className={labelClass} htmlFor="pnr">
+                PNR / booking reference
+              </label>
+              <input
+                id="pnr"
+                className={inputClass}
+                value={values.pnr}
+                onChange={(e) => update("pnr", e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className={labelClass} htmlFor="airline">
-            Airline *
-          </label>
-          <input
-            id="airline"
-            required
-            className={inputClass}
-            value={values.airline}
-            onChange={(e) => update("airline", e.target.value)}
-          />
-        </div>
+            <div>
+              <label className={labelClass} htmlFor="airline">
+                Airline *
+              </label>
+              <input
+                id="airline"
+                required
+                className={inputClass}
+                value={values.airline}
+                onChange={(e) => update("airline", e.target.value)}
+              />
+            </div>
 
-        <div>
-          <label className={labelClass} htmlFor="cabinClass">
-            Cabin class
-          </label>
-          <select
-            id="cabinClass"
-            className={inputClass}
-            value={values.cabinClass}
-            onChange={(e) => update("cabinClass", e.target.value as SaleFormValues["cabinClass"])}
-          >
-            <option value="ECONOMY">Economy</option>
-            <option value="PREMIUM_ECONOMY">Premium economy</option>
-            <option value="BUSINESS">Business</option>
-            <option value="FIRST">First</option>
-          </select>
-        </div>
+            <div>
+              <label className={labelClass} htmlFor="cabinClass">
+                Cabin class
+              </label>
+              <select
+                id="cabinClass"
+                className={inputClass}
+                value={values.cabinClass}
+                onChange={(e) => update("cabinClass", e.target.value as SaleFormValues["cabinClass"])}
+              >
+                <option value="ECONOMY">Economy</option>
+                <option value="PREMIUM_ECONOMY">Premium economy</option>
+                <option value="BUSINESS">Business</option>
+                <option value="FIRST">First</option>
+              </select>
+            </div>
+          </>
+        ) : (
+          SERVICE_FIELDS[isNonAirServiceType(values.serviceType) ? values.serviceType : "OTHER"].map((field) => (
+            <div key={field.key} className={field.type === "textarea" ? "sm:col-span-2" : undefined}>
+              <label className={labelClass} htmlFor={`svc-${field.key}`}>
+                {field.label}
+                {field.required ? " *" : ""}
+              </label>
+              <ServiceFieldInput
+                field={field}
+                value={values.serviceAttributes[field.key] ?? ""}
+                onChange={(v) => updateAttr(field.key, v)}
+              />
+            </div>
+          ))
+        )}
 
         <div>
           <label className={labelClass} htmlFor="paxCount">
-            Passengers / tickets *
+            {SERVICE_PAX_LABEL[values.serviceType]} *
           </label>
           <input
             id="paxCount"
@@ -379,60 +498,64 @@ export function SaleForm({
           </label>
           <input
             id="supplier"
-            placeholder="Consolidator or GDS the ticket was bought through"
+            placeholder="Consolidator, vendor, or supplier this was bought through"
             className={inputClass}
             value={values.supplier}
             onChange={(e) => update("supplier", e.target.value)}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass} htmlFor="origin">
-              Origin *
-            </label>
-            <input
-              id="origin"
-              required
-              placeholder="DAC"
-              className={inputClass}
-              value={values.origin}
-              onChange={(e) => update("origin", e.target.value)}
-            />
-          </div>
-          <div>
-            <label className={labelClass} htmlFor="destination">
-              Destination *
-            </label>
-            <input
-              id="destination"
-              required
-              placeholder="DXB"
-              className={inputClass}
-              value={values.destination}
-              onChange={(e) => update("destination", e.target.value)}
-            />
-          </div>
-        </div>
+        {isAirTicket && (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass} htmlFor="origin">
+                  Origin *
+                </label>
+                <input
+                  id="origin"
+                  required
+                  placeholder="DAC"
+                  className={inputClass}
+                  value={values.origin}
+                  onChange={(e) => update("origin", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="destination">
+                  Destination *
+                </label>
+                <input
+                  id="destination"
+                  required
+                  placeholder="DXB"
+                  className={inputClass}
+                  value={values.destination}
+                  onChange={(e) => update("destination", e.target.value)}
+                />
+              </div>
+            </div>
 
-        <div>
-          <label className={labelClass} htmlFor="tripType">
-            Trip type
-          </label>
-          <select
-            id="tripType"
-            className={inputClass}
-            value={values.tripType}
-            onChange={(e) => update("tripType", e.target.value as SaleFormValues["tripType"])}
-          >
-            <option value="ONE_WAY">One-way</option>
-            <option value="ROUND_TRIP">Round-trip</option>
-          </select>
-        </div>
+            <div>
+              <label className={labelClass} htmlFor="tripType">
+                Trip type
+              </label>
+              <select
+                id="tripType"
+                className={inputClass}
+                value={values.tripType}
+                onChange={(e) => update("tripType", e.target.value as SaleFormValues["tripType"])}
+              >
+                <option value="ONE_WAY">One-way</option>
+                <option value="ROUND_TRIP">Round-trip</option>
+              </select>
+            </div>
+          </>
+        )}
 
         <div>
           <label className={labelClass} htmlFor="travelDate">
-            Travel date *
+            {SERVICE_DATE_LABEL[values.serviceType]} *
           </label>
           <input
             id="travelDate"
@@ -444,15 +567,16 @@ export function SaleForm({
           />
         </div>
 
-        {values.tripType === "ROUND_TRIP" && (
+        {showReturnDate && (
           <div>
             <label className={labelClass} htmlFor="returnDate">
-              Return date *
+              {returnDateLabel}
+              {isAirTicket ? " *" : ""}
             </label>
             <input
               id="returnDate"
               type="date"
-              required
+              required={isAirTicket}
               className={inputClass}
               value={values.returnDate}
               onChange={(e) => update("returnDate", e.target.value)}

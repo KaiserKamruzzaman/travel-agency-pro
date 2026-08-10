@@ -6,6 +6,7 @@ import { formatDate, formatMoney } from "@/lib/format";
 import { StatusBadge } from "@/components/status-badge";
 import { EditedIndicator } from "@/components/edited-indicator";
 import { SummaryCard } from "@/components/summary-card";
+import { SERVICE_TYPE_LABEL } from "@/lib/service-types";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -97,8 +98,8 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
             <thead className="bg-sky-50/60 text-slate-500">
               <tr>
                 <th className="px-3 py-2 font-medium">Sale date</th>
-                <th className="px-3 py-2 font-medium">Passenger</th>
-                <th className="hidden px-3 py-2 font-medium sm:table-cell print:table-cell">Route</th>
+                <th className="px-3 py-2 font-medium">Name</th>
+                <th className="hidden px-3 py-2 font-medium sm:table-cell print:table-cell">Service</th>
                 <th className="px-3 py-2 font-medium">Price</th>
                 <th className="hidden px-3 py-2 font-medium md:table-cell print:table-cell">Margin</th>
                 <th className="px-3 py-2 font-medium">Status</th>
@@ -111,8 +112,10 @@ export default async function EmployeeDetailPage({ params }: PageProps) {
                   <tr key={sale.id} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(sale.saleDate)}</td>
                     <td className="px-3 py-2 text-slate-700">{sale.passengerName}</td>
-                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 sm:table-cell print:table-cell">
-                      {sale.origin} → {sale.destination}
+                    <td className="hidden px-3 py-2 text-slate-700 sm:table-cell print:table-cell">
+                      {sale.serviceType === "AIR_TICKET"
+                        ? `${sale.origin} → ${sale.destination}`
+                        : SERVICE_TYPE_LABEL[sale.serviceType]}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
                     <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 md:table-cell print:table-cell">{formatMoney(margin)}</td>

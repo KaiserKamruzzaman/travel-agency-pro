@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SERVICE_TYPE_OPTIONS } from "@/lib/service-types";
 
 type Option = { id: string; name: string };
 
@@ -13,6 +14,7 @@ export type SalesFilterValues = {
   branchId?: string;
   employeeId?: string;
   airline?: string;
+  serviceType?: string;
   status?: string;
   paymentStatus?: string;
 };
@@ -46,7 +48,7 @@ export function SalesFilters({
           id="q"
           name="q"
           type="text"
-          placeholder="Passenger or PNR"
+          placeholder="Name or PNR"
           defaultValue={values.q ?? ""}
           className={inputClass}
         />
@@ -93,6 +95,19 @@ export function SalesFilters({
           </select>
         </div>
       )}
+      <div>
+        <label className={labelClass} htmlFor="serviceType">
+          Service
+        </label>
+        <select id="serviceType" name="serviceType" defaultValue={values.serviceType ?? ""} className={inputClass}>
+          <option value="">All services</option>
+          {SERVICE_TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <div>
         <label className={labelClass} htmlFor="airline">
           Airline
