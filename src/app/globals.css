@@ -152,6 +152,26 @@ table {
   animation: fade-in 0.15s ease-out both;
 }
 
+/* For Radix Popper content (dropdowns, popovers): unlike the dialog above,
+   these are already positioned by Radix via a transform on a wrapper
+   element, so the animation must only scale/fade — adding a translate here
+   would shift the menu away from its computed position. */
+@keyframes popper-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-popper-pop-in {
+  animation: popper-pop-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, center);
+}
+
 @media print {
   body {
     background: #ffffff;
@@ -173,5 +193,10 @@ table {
     animation: none;
     opacity: 1;
     transform: translate(-50%, -50%);
+  }
+  .animate-popper-pop-in {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
   }
 }
