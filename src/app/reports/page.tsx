@@ -10,7 +10,7 @@ import { ExportButtons } from "@/components/export-buttons";
 type SearchParams = { [key: string]: string | string[] | undefined };
 type PageProps = { searchParams: Promise<SearchParams> };
 
-const VALID_PRESETS: ReportPreset[] = ["week", "month", "year", "custom"];
+const VALID_PRESETS: ReportPreset[] = ["today", "week", "month", "year", "custom"];
 
 function firstParam(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
@@ -138,12 +138,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         <BreakdownTable title="Revenue mix across services" rows={report.byServiceType} />
       </Section>
 
-      <Section title="Sales mix" last>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <TopList title="Top routes" rows={report.byRoute} />
-          <TopList title="Top airlines" rows={report.byAirline} />
-        </div>
-      </Section>
+      {(report.byRoute.length > 0 || report.byAirline.length > 0) && (
+        <Section title="Sales mix" last>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <TopList title="Top routes" rows={report.byRoute} />
+            <TopList title="Top airlines" rows={report.byAirline} />
+          </div>
+        </Section>
+      )}
     </div>
   );
 }

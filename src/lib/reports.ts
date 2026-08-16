@@ -3,7 +3,7 @@ import { sumRevenueAndCost } from "@/lib/sale-metrics";
 import { getExpenseTotals } from "@/lib/expenses";
 import { SERVICE_TYPE_LABEL } from "@/lib/service-types";
 
-export type ReportPreset = "week" | "month" | "year" | "custom";
+export type ReportPreset = "today" | "week" | "month" | "year" | "custom";
 export type ReportGranularity = "day" | "month";
 
 function startOfDay(d: Date) {
@@ -41,6 +41,9 @@ export function getPresetRange(
   const today = startOfDay(now);
   const tomorrow = addDays(today, 1);
 
+  if (preset === "today") {
+    return { start: today, end: tomorrow, granularity: "day" };
+  }
   if (preset === "week") {
     return { start: addDays(today, -6), end: tomorrow, granularity: "day" };
   }
@@ -295,8 +298,8 @@ export function buildReportCsv(
   csv += csvSection("By branch", report.byBranch);
   csv += csvSection("By employee", report.byEmployee);
   csv += csvSection("By service type", report.byServiceType);
-  csv += csvSection("Top routes", report.byRoute);
-  csv += csvSection("Top airlines", report.byAirline);
+  if (report.byRoute.length > 0) csv += csvSection("Top routes", report.byRoute);
+  if (report.byAirline.length > 0) csv += csvSection("Top airlines", report.byAirline);
 
   csv += csvRow(["Expenses by category"]);
   csv += csvRow(["Category", "Amount"]);

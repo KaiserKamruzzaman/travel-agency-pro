@@ -16,11 +16,19 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
       <AutoRefresh />
-      <div className="animate-fade-in-up mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Today&apos;s overview</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          End-of-day summary across all branches. Refreshes automatically.
-        </p>
+      <div className="animate-fade-in-up mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Today&apos;s overview</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            End-of-day summary across all branches. Refreshes automatically.
+          </p>
+        </div>
+        <Link
+          href="/reports?preset=today"
+          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          View full report for today →
+        </Link>
       </div>
 
       <div className="animate-fade-in-up mb-8 grid grid-cols-1 gap-4 sm:grid-cols-4" style={{ animationDelay: "60ms" }}>

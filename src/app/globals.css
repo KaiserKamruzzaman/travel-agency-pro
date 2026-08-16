@@ -173,9 +173,49 @@ table {
 }
 
 @media print {
-  body {
-    background: #ffffff;
+  @page {
+    size: landscape;
+    margin: 1.27cm;
   }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  /* Neutralize dark mode and card chrome (shadows, tints, rounded corners)
+     so printed output is a plain black-on-white document rather than a
+     screenshot of the themed UI. */
+  * {
+    color: #000000 !important;
+    background-color: transparent !important;
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    white-space: normal !important;
+  }
+
+  /* Screen-only tables sit in a fixed-width, horizontally-scrollable
+     container (overflow-x-auto) with nowrap cells. Printing that as-is
+     clips columns past the visible width and can render a scrollbar.
+     Let the table reflow to the full page width instead. */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  table {
+    width: 100% !important;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    border: 1px solid #d1d5db !important;
+    white-space: normal !important;
+    overflow-wrap: break-word;
+  }
+
   tr {
     break-inside: avoid;
   }

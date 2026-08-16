@@ -85,7 +85,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
       <div className="animate-fade-in-up mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{isOwner ? "All sales" : "My sales"}</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="print:hidden text-sm text-slate-500 dark:text-slate-400">
             {isOwner
               ? "Organization-wide view across all branches and employees."
               : "Sales you've entered."}
