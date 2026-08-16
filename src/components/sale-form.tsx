@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { formatMoney } from "@/lib/format";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   SERVICE_TYPE_OPTIONS,
   SERVICE_DATE_LABEL,
@@ -118,10 +119,13 @@ function ServiceFieldInput({
       />
     );
   }
+  if (field.type === "date") {
+    return <DatePicker id={fieldId} required={field.required} value={value} onChange={onChange} className="w-full" />;
+  }
   return (
     <input
       id={fieldId}
-      type={field.type === "date" ? "date" : field.type === "number" ? "number" : "text"}
+      type={field.type === "number" ? "number" : "text"}
       required={field.required}
       placeholder={field.placeholder}
       className={inputClass}
@@ -557,13 +561,12 @@ export function SaleForm({
           <label className={labelClass} htmlFor="travelDate">
             {SERVICE_DATE_LABEL[values.serviceType]} *
           </label>
-          <input
+          <DatePicker
             id="travelDate"
-            type="date"
             required
-            className={inputClass}
             value={values.travelDate}
-            onChange={(e) => update("travelDate", e.target.value)}
+            onChange={(v) => update("travelDate", v)}
+            className="w-full"
           />
         </div>
 
@@ -573,13 +576,12 @@ export function SaleForm({
               {returnDateLabel}
               {isAirTicket ? " *" : ""}
             </label>
-            <input
+            <DatePicker
               id="returnDate"
-              type="date"
               required={isAirTicket}
-              className={inputClass}
               value={values.returnDate}
-              onChange={(e) => update("returnDate", e.target.value)}
+              onChange={(v) => update("returnDate", v)}
+              className="w-full"
             />
           </div>
         )}
@@ -588,13 +590,12 @@ export function SaleForm({
           <label className={labelClass} htmlFor="saleDate">
             Sale date *
           </label>
-          <input
+          <DatePicker
             id="saleDate"
-            type="date"
             required
-            className={inputClass}
             value={values.saleDate}
-            onChange={(e) => update("saleDate", e.target.value)}
+            onChange={(v) => update("saleDate", v)}
+            className="w-full"
           />
         </div>
 

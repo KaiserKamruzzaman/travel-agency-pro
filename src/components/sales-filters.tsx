@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SERVICE_TYPE_OPTIONS } from "@/lib/service-types";
+import { DateRangePicker } from "@/components/ui/date-picker";
 
 type Option = { id: string; name: string };
 
@@ -54,16 +55,8 @@ export function SalesFilters({
         />
       </div>
       <div>
-        <label className={labelClass} htmlFor="from">
-          From
-        </label>
-        <input id="from" name="from" type="date" defaultValue={values.from ?? ""} className={inputClass} />
-      </div>
-      <div>
-        <label className={labelClass} htmlFor="to">
-          To
-        </label>
-        <input id="to" name="to" type="date" defaultValue={values.to ?? ""} className={inputClass} />
+        <label className={labelClass}>Date range</label>
+        <DateRangePicker fromName="from" toName="to" defaultFrom={values.from} defaultTo={values.to} />
       </div>
       {isOwner && (
         <div>

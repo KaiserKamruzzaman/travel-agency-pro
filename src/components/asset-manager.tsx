@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import type { AssetStatus } from "@/generated/prisma/client";
 import { formatMoney, formatDate, toDateInputValue } from "@/lib/format";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export type ManagedAsset = {
   id: string;
@@ -220,12 +221,12 @@ export function AssetManager({
                 <label className={labelClass} htmlFor="assetPurchaseDate">
                   Purchase date
                 </label>
-                <input
+                <DatePicker
                   id="assetPurchaseDate"
-                  type="date"
-                  className={inputClass}
                   value={purchaseDate}
-                  onChange={(e) => setPurchaseDate(e.target.value)}
+                  onChange={setPurchaseDate}
+                  placeholder="No date"
+                  className="w-full"
                 />
               </div>
               <div>
@@ -416,12 +417,7 @@ function AssetRow({ asset, branches, employees }: { asset: ManagedAsset; branche
           </select>
         </td>
         <td className="px-3 py-2">
-          <input
-            type="date"
-            className={`${inputClass} mb-1`}
-            value={purchaseDate}
-            onChange={(e) => setPurchaseDate(e.target.value)}
-          />
+          <DatePicker value={purchaseDate} onChange={setPurchaseDate} placeholder="No date" className="mb-1 w-full" />
           <input
             type="number"
             min={0}

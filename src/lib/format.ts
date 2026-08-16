@@ -34,3 +34,13 @@ export function toDateInputValue(value: Date | string): string {
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
+// Reverse of toDateInputValue — parses via local Date fields, not the Date
+// constructor's UTC-based string parsing, for the same timezone reason.
+export function parseDateInputValue(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, y, m, d] = match;
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  return Number.isNaN(date.getTime()) ? null : date;
+}

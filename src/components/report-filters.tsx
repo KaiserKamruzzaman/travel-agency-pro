@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { toDateInputValue } from "@/lib/format";
+import { DateRangePicker } from "@/components/ui/date-picker";
 import type { ReportPreset } from "@/lib/reports";
 
 type Option = { id: string; name: string };
@@ -67,16 +68,8 @@ export function ReportFilters({
       >
         <input type="hidden" name="preset" value="custom" />
         <div>
-          <label className={labelClass} htmlFor="start">
-            From
-          </label>
-          <input id="start" type="date" name="start" defaultValue={toDateInputValue(start)} className={inputClass} />
-        </div>
-        <div>
-          <label className={labelClass} htmlFor="end">
-            To
-          </label>
-          <input id="end" type="date" name="end" defaultValue={toDateInputValue(displayEnd)} className={inputClass} />
+          <label className={labelClass}>Date range</label>
+          <DateRangePicker fromName="start" toName="end" defaultFrom={toDateInputValue(start)} defaultTo={toDateInputValue(displayEnd)} />
         </div>
         <div>
           <label className={labelClass} htmlFor="branchId">

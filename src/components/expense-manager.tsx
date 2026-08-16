@@ -5,6 +5,7 @@ import { useState, type FormEvent } from "react";
 import type { ExpenseCategory } from "@/generated/prisma/client";
 import { formatMoney, formatDate, toDateInputValue } from "@/lib/format";
 import { useConfirm } from "@/components/ui/confirm-dialog";
+import { DatePicker } from "@/components/ui/date-picker";
 
 export type ManagedExpense = {
   id: string;
@@ -194,14 +195,7 @@ export function ExpenseManager({
             <label className={labelClass} htmlFor="expenseDate">
               Date *
             </label>
-            <input
-              id="expenseDate"
-              type="date"
-              required
-              className={inputClass}
-              value={expenseDate}
-              onChange={(e) => setExpenseDate(e.target.value)}
-            />
+            <DatePicker id="expenseDate" required value={expenseDate} onChange={setExpenseDate} className="w-full" />
           </div>
           <div className="sm:col-span-2 lg:col-span-3">
             <label className={labelClass} htmlFor="expenseNotes">
@@ -375,12 +369,7 @@ function ExpenseRow({
           </select>
         </td>
         <td className="px-3 py-2">
-          <input
-            type="date"
-            className={inputClass}
-            value={expenseDate}
-            onChange={(e) => setExpenseDate(e.target.value)}
-          />
+          <DatePicker required value={expenseDate} onChange={setExpenseDate} className="w-full" />
         </td>
         <td className="px-3 py-2">
           <input
