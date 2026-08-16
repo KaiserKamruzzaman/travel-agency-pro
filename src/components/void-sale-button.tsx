@@ -31,7 +31,7 @@ export function VoidSaleButton({ saleId }: { saleId: string }) {
     <button
       onClick={handleClick}
       disabled={pending}
-      className="text-sm font-medium text-rose-600 transition-colors hover:text-rose-700 hover:underline disabled:opacity-60"
+      className="text-sm font-medium text-rose-600 dark:text-rose-400 transition-colors hover:text-rose-700 dark:hover:text-rose-300 hover:underline disabled:opacity-60"
     >
       {pending ? "Voiding…" : "Void"}
     </button>

@@ -3,8 +3,8 @@
 import { useState, type FormEvent } from "react";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
-const labelClass = "block text-sm font-medium mb-1 text-slate-700";
+  "w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-100 dark:focus:ring-sky-900/40";
+const labelClass = "block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300";
 
 export function ChangePasswordForm() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -51,16 +51,16 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-sm space-y-4 rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
-      <h2 className="text-sm font-semibold text-slate-800">Change password</h2>
+    <form onSubmit={handleSubmit} className="max-w-sm space-y-4 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm">
+      <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Change password</h2>
 
       {error && (
-        <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+        <p className="rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-sm text-rose-700 dark:text-rose-300" role="alert">
           {error}
         </p>
       )}
       {success && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <p className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
           Password updated.
         </p>
       )}

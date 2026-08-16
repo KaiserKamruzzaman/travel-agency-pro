@@ -15,8 +15,8 @@ export type ManagedEmployee = {
 type BranchOption = { id: string; name: string };
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
-const labelClass = "block text-sm font-medium mb-1 text-slate-700";
+  "w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-100 dark:focus:ring-sky-900/40";
+const labelClass = "block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300";
 
 export function EmployeeManager({ employees, branches }: { employees: ManagedEmployee[]; branches: BranchOption[] }) {
   const router = useRouter();
@@ -58,15 +58,15 @@ export function EmployeeManager({ employees, branches }: { employees: ManagedEmp
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleCreate} className="rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-slate-800">Add an employee</h2>
+      <form onSubmit={handleCreate} className="rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">Add an employee</h2>
         {error && (
-          <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+          <p className="mb-3 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-sm text-rose-700 dark:text-rose-300" role="alert">
             {error}
           </p>
         )}
         {branches.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Add a branch first — employees must be assigned to one.
           </p>
         ) : (
@@ -135,9 +135,9 @@ export function EmployeeManager({ employees, branches }: { employees: ManagedEmp
         )}
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
         <table className="w-full text-left text-sm">
-          <thead className="bg-sky-50/60 text-slate-500">
+          <thead className="bg-sky-50/60 dark:bg-sky-950/30 text-slate-500 dark:text-slate-400">
             <tr>
               <th className="px-3 py-2 font-medium">Name</th>
               <th className="px-3 py-2 font-medium">Email</th>
@@ -149,7 +149,7 @@ export function EmployeeManager({ employees, branches }: { employees: ManagedEmp
           <tbody>
             {employees.length === 0 ? (
               <tr>
-                <td className="px-3 py-3 text-slate-500" colSpan={5}>
+                <td className="px-3 py-3 text-slate-500 dark:text-slate-400" colSpan={5}>
                   No employees yet.
                 </td>
               </tr>
@@ -242,11 +242,11 @@ function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branch
 
   if (editing) {
     return (
-      <tr className="border-t border-slate-100">
+      <tr className="border-t border-slate-100 dark:border-slate-800">
         <td className="px-3 py-2">
           <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} />
         </td>
-        <td className="px-3 py-2 text-slate-500">{employee.email}</td>
+        <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{employee.email}</td>
         <td className="px-3 py-2">
           <select className={inputClass} value={branchId} onChange={(e) => setBranchId(e.target.value)}>
             {branchOptions.map((b) => (
@@ -256,10 +256,10 @@ function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branch
             ))}
           </select>
         </td>
-        <td className="px-3 py-2 text-slate-500">{employee.active ? "Active" : "Deactivated"}</td>
+        <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{employee.active ? "Active" : "Deactivated"}</td>
         <td className="px-3 py-2">
           <div className="flex items-center gap-3">
-            <button type="button" disabled={pending} onClick={handleSave} className="text-sm font-medium text-blue-600 hover:underline disabled:opacity-60">
+            <button type="button" disabled={pending} onClick={handleSave} className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-60">
               Save
             </button>
             <button
@@ -270,26 +270,26 @@ function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branch
                 setBranchId(employee.branch?.id ?? branches[0]?.id ?? "");
                 setError(null);
               }}
-              className="text-sm font-medium text-slate-500 hover:underline"
+              className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:underline"
             >
               Cancel
             </button>
           </div>
-          {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+          {error && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
         </td>
       </tr>
     );
   }
 
   return (
-    <tr className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
-      <td className="px-3 py-2 font-medium text-slate-900">{employee.name}</td>
-      <td className="px-3 py-2 text-slate-700">{employee.email}</td>
-      <td className="px-3 py-2 text-slate-700">{employee.branch?.name ?? "—"}</td>
+    <tr className="border-t border-slate-100 dark:border-slate-800 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+      <td className="px-3 py-2 font-medium text-slate-900 dark:text-slate-100">{employee.name}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{employee.email}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{employee.branch?.name ?? "—"}</td>
       <td className="px-3 py-2">
         <span
           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            employee.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+            employee.active ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
           }`}
         >
           {employee.active ? "Active" : "Deactivated"}
@@ -297,17 +297,17 @@ function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branch
       </td>
       <td className="px-3 py-2">
         <div className="flex items-center gap-3">
-          <button type="button" onClick={() => setEditing(true)} className="text-sm font-medium text-blue-600 hover:underline">
+          <button type="button" onClick={() => setEditing(true)} className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
             Edit
           </button>
-          <button type="button" onClick={() => setResetting((v) => !v)} className="text-sm font-medium text-slate-600 hover:underline">
+          <button type="button" onClick={() => setResetting((v) => !v)} className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:underline">
             Reset password
           </button>
           <button
             type="button"
             disabled={pending}
             onClick={handleToggleActive}
-            className="text-sm font-medium text-rose-600 hover:underline disabled:opacity-60"
+            className="text-sm font-medium text-rose-600 dark:text-rose-400 hover:underline disabled:opacity-60"
           >
             {employee.active ? "Deactivate" : "Reactivate"}
           </button>
@@ -326,13 +326,13 @@ function EmployeeRow({ employee, branches }: { employee: ManagedEmployee; branch
               type="button"
               disabled={pending}
               onClick={handleResetPassword}
-              className="whitespace-nowrap text-sm font-medium text-blue-600 hover:underline disabled:opacity-60"
+              className="whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-60"
             >
               Set
             </button>
           </div>
         )}
-        {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
+        {error && <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">{error}</p>}
       </td>
     </tr>
   );

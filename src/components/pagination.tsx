@@ -33,13 +33,13 @@ export function Pagination({
 
   return (
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm print:hidden">
-      <p className="text-slate-500">{total === 0 ? "No results" : `Showing ${start}–${end} of ${total}`}</p>
+      <p className="text-slate-500 dark:text-slate-400">{total === 0 ? "No results" : `Showing ${start}–${end} of ${total}`}</p>
       {pageCount > 1 && (
         <div className="flex items-center gap-2">
           <PageLink href={hrefForPage(page - 1)} disabled={page <= 1}>
             ← Prev
           </PageLink>
-          <span className="px-1 text-slate-500">
+          <span className="px-1 text-slate-500 dark:text-slate-400">
             Page {page} of {pageCount}
           </span>
           <PageLink href={hrefForPage(page + 1)} disabled={page >= pageCount}>
@@ -54,7 +54,7 @@ export function Pagination({
 function PageLink({ href, disabled, children }: { href: string; disabled: boolean; children: ReactNode }) {
   if (disabled) {
     return (
-      <span className="cursor-not-allowed rounded-lg border border-slate-100 px-3 py-1.5 font-medium text-slate-300">
+      <span className="cursor-not-allowed rounded-lg border border-slate-100 dark:border-slate-800 px-3 py-1.5 font-medium text-slate-300 dark:text-slate-600">
         {children}
       </span>
     );
@@ -62,7 +62,7 @@ function PageLink({ href, disabled, children }: { href: string; disabled: boolea
   return (
     <Link
       href={href}
-      className="rounded-lg border border-slate-200 px-3 py-1.5 font-medium text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-slate-900"
+      className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-1.5 font-medium text-slate-600 dark:text-slate-400 transition-colors hover:border-sky-200 dark:hover:border-sky-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:text-slate-900 dark:hover:text-slate-100"
     >
       {children}
     </Link>

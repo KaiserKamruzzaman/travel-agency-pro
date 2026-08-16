@@ -52,8 +52,8 @@ export default async function AssetsPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
       <div className="animate-fade-in-up mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Assets</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Assets</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Track office equipment and furniture across branches — computers, printers, scanners, mobiles, and more.
         </p>
       </div>

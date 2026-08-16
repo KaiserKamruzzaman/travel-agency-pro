@@ -2,9 +2,77 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Session } from "next-auth";
 import { logoutAction } from "@/app/actions/auth";
+
+type Theme = "light" | "dark" | "system";
+const THEME_KEY = "wanderlust-theme";
+
+function applyTheme(theme: Theme) {
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.classList.toggle("dark", isDark);
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+function MonitorIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+      <rect x="2" y="4" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
+  );
+}
+
+function ThemeToggle({ theme, onChange, className }: { theme: Theme; onChange: (t: Theme) => void; className?: string }) {
+  const options: { value: Theme; label: string; icon: ReactNode }[] = [
+    { value: "light", label: "Light", icon: <SunIcon /> },
+    { value: "dark", label: "Dark", icon: <MoonIcon /> },
+    { value: "system", label: "System", icon: <MonitorIcon /> },
+  ];
+
+  return (
+    <div
+      role="group"
+      aria-label="Theme"
+      className={`inline-flex items-center gap-0.5 rounded-full border border-slate-200 dark:border-slate-700 p-0.5 ${className ?? ""}`}
+    >
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          title={opt.label}
+          aria-pressed={theme === opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+            theme === opt.value
+              ? "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300"
+              : "text-slate-400 hover:bg-sky-50 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-sky-950/40 dark:hover:text-slate-300"
+          }`}
+        >
+          {opt.icon}
+          <span className="sr-only">{opt.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function PlaneMark() {
   return (
@@ -21,10 +89,30 @@ export function Nav({ session }: { session: Session }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [theme, setTheme] = useState<Theme>("system");
 
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
     setOpen(false);
+  }
+
+  useEffect(() => {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "light" || stored === "dark" || stored === "system") setTheme(stored);
+  }, []);
+
+  useEffect(() => {
+    if (theme !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => applyTheme("system");
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [theme]);
+
+  function selectTheme(t: Theme) {
+    setTheme(t);
+    localStorage.setItem(THEME_KEY, t);
+    applyTheme(t);
   }
 
   const links = [
@@ -42,10 +130,10 @@ export function Nav({ session }: { session: Session }) {
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur-md print:hidden">
+    <header className="sticky top-0 z-30 border-b border-sky-100 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md print:hidden">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-6">
-          <Link href="/sales" className="flex items-center gap-2 font-semibold text-slate-900">
+          <Link href="/sales" className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
             <PlaneMark />
             <span className="hidden sm:inline">Wanderlust Travel</span>
           </Link>
@@ -59,16 +147,17 @@ export function Nav({ session }: { session: Session }) {
         </div>
 
         <div className="flex items-center gap-3 text-sm">
-          <Link href="/profile" className="hidden items-center gap-2 lg:flex hover:text-blue-600">
-            <span className="text-slate-600 hover:text-blue-600">{session.user.name}</span>
-            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+          <ThemeToggle theme={theme} onChange={selectTheme} className="hidden lg:inline-flex" />
+          <Link href="/profile" className="hidden items-center gap-2 lg:flex hover:text-blue-600 dark:hover:text-blue-400">
+            <span className="text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400">{session.user.name}</span>
+            <span className="rounded-full bg-sky-100 dark:bg-sky-900/50 px-2 py-0.5 text-xs font-medium text-sky-700 dark:text-sky-300">
               {isOwner ? "Owner" : "Employee"}
             </span>
           </Link>
           <form action={logoutAction} className="hidden lg:block">
             <button
               type="submit"
-              className="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-slate-900"
+              className="rounded-md border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition-colors hover:border-sky-200 dark:hover:border-sky-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:text-slate-900 dark:hover:text-slate-100"
             >
               Log out
             </button>
@@ -79,7 +168,7 @@ export function Nav({ session }: { session: Session }) {
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-label={open ? "Close menu" : "Open menu"}
-            className="relative flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition-colors hover:bg-sky-50 lg:hidden"
+            className="relative flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 transition-colors hover:bg-sky-50 dark:hover:bg-sky-950/40 lg:hidden"
           >
             <span className="relative block h-3.5 w-4.5">
               <span
@@ -109,7 +198,7 @@ export function Nav({ session }: { session: Session }) {
       >
         <div className="overflow-hidden">
           <div
-            className={`border-t border-sky-100 bg-white transition-opacity duration-200 ease-out motion-reduce:transition-none ${
+            className={`border-t border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 transition-opacity duration-200 ease-out motion-reduce:transition-none ${
               open ? "opacity-100 delay-100" : "opacity-0"
             }`}
           >
@@ -119,19 +208,23 @@ export function Nav({ session }: { session: Session }) {
                   {link.label}
                 </NavLink>
               ))}
+              <div className="mt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 px-3 pt-3 pb-1.5 text-sm text-slate-600 dark:text-slate-400">
+                <span>Theme</span>
+                <ThemeToggle theme={theme} onChange={selectTheme} />
+              </div>
               <Link
                 href="/profile"
-                className="mt-2 flex items-center justify-between rounded-md border-t border-slate-100 px-3 pt-3 pb-1.5 text-sm text-slate-600 hover:text-blue-600"
+                className="flex items-center justify-between rounded-md px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
               >
                 <span>{session.user.name}</span>
-                <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                <span className="rounded-full bg-sky-100 dark:bg-sky-900/50 px-2 py-0.5 text-xs font-medium text-sky-700 dark:text-sky-300">
                   {isOwner ? "Owner" : "Employee"}
                 </span>
               </Link>
               <form action={logoutAction}>
                 <button
                   type="submit"
-                  className="mt-1 w-full rounded-md border border-slate-200 px-3 py-1.5 text-left text-sm font-medium text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50 hover:text-slate-900"
+                  className="mt-1 w-full rounded-md border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-left text-sm font-medium text-slate-600 dark:text-slate-400 transition-colors hover:border-sky-200 dark:hover:border-sky-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:text-slate-900 dark:hover:text-slate-100"
                 >
                   Log out
                 </button>
@@ -148,7 +241,7 @@ function NavLink({ href, children, block }: { href: string; children: ReactNode;
   return (
     <Link
       href={href}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium text-slate-500 transition-colors hover:bg-sky-50 hover:text-slate-900 ${
+      className={`rounded-md px-3 py-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 transition-colors hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:text-slate-900 dark:hover:text-slate-100 ${
         block ? "w-full" : ""
       }`}
     >

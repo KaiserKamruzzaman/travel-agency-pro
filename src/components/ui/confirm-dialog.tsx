@@ -22,7 +22,7 @@ const ConfirmContext = createContext<((options: ConfirmOptions) => Promise<boole
 const variantStyles: Record<ConfirmVariant, { icon: ReactNode; confirmClass: string }> = {
   danger: {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-rose-600">
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-rose-600 dark:text-rose-400">
         <path
           d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a1.5 1.5 0 0 0 1.29 2.25h17.78A1.5 1.5 0 0 0 22.18 18L13.71 3.86a1.5 1.5 0 0 0-2.42 0Z"
           stroke="currentColor"
@@ -33,11 +33,11 @@ const variantStyles: Record<ConfirmVariant, { icon: ReactNode; confirmClass: str
       </svg>
     ),
     confirmClass:
-      "bg-gradient-to-r from-rose-500 to-red-600 shadow-rose-300/50 hover:shadow-md focus-visible:ring-rose-300",
+      "bg-gradient-to-r from-rose-500 to-red-600 shadow-rose-300/50 hover:shadow-md focus-visible:ring-rose-300 dark:focus-visible:ring-rose-700",
   },
   neutral: {
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-sky-600">
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-sky-600 dark:text-sky-400">
         <path
           d="M12 16v-4m0-4h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"
           stroke="currentColor"
@@ -48,7 +48,7 @@ const variantStyles: Record<ConfirmVariant, { icon: ReactNode; confirmClass: str
       </svg>
     ),
     confirmClass:
-      "bg-gradient-to-r from-sky-500 to-blue-600 shadow-sky-300/50 hover:shadow-md focus-visible:ring-sky-300",
+      "bg-gradient-to-r from-sky-500 to-blue-600 shadow-sky-300/50 hover:shadow-md focus-visible:ring-sky-300 dark:focus-visible:ring-sky-700",
   },
 };
 
@@ -77,23 +77,23 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       <AlertDialog.Root open={state !== null} onOpenChange={(open) => !open && close(false)}>
         <AlertDialog.Portal>
           <AlertDialog.Overlay className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm animate-dialog-overlay" />
-          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-sm rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-900/10 outline-none animate-dialog-pop-in">
+          <AlertDialog.Content className="fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-2xl shadow-slate-900/10 outline-none animate-dialog-pop-in">
             {state && (
               <>
                 <div className="flex items-start gap-3">
                   <div
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                      state.variant === "neutral" ? "bg-sky-50" : "bg-rose-50"
+                      state.variant === "neutral" ? "bg-sky-50 dark:bg-sky-950/40" : "bg-rose-50 dark:bg-rose-950/30"
                     }`}
                   >
                     {icon}
                   </div>
                   <div className="min-w-0">
-                    <AlertDialog.Title className="text-sm font-semibold text-slate-900">
+                    <AlertDialog.Title className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                       {state.title}
                     </AlertDialog.Title>
                     {state.description && (
-                      <AlertDialog.Description className="mt-1 text-sm text-slate-500">
+                      <AlertDialog.Description className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {state.description}
                       </AlertDialog.Description>
                     )}
@@ -104,7 +104,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                     <button
                       type="button"
                       onClick={() => close(false)}
-                      className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200"
+                      className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-200 dark:focus-visible:ring-slate-700"
                     >
                       {state.cancelLabel ?? "Cancel"}
                     </button>

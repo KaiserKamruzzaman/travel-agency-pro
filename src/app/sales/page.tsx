@@ -84,8 +84,8 @@ export default async function SalesPage({ searchParams }: PageProps) {
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
       <div className="animate-fade-in-up mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{isOwner ? "All sales" : "My sales"}</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{isOwner ? "All sales" : "My sales"}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {isOwner
               ? "Organization-wide view across all branches and employees."
               : "Sales you've entered."}
@@ -134,11 +134,11 @@ export default async function SalesPage({ searchParams }: PageProps) {
       />
 
       {sales.length === 0 ? (
-        <p className="animate-fade-in-up text-sm text-slate-500">No sales match these filters.</p>
+        <p className="animate-fade-in-up text-sm text-slate-500 dark:text-slate-400">No sales match these filters.</p>
       ) : (
-        <div className="animate-fade-in-up overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+        <div className="animate-fade-in-up overflow-x-auto rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-sky-50/60 text-slate-500">
+            <thead className="bg-sky-50/60 dark:bg-sky-950/30 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-2 font-medium">Sale date</th>
                 <th className="px-3 py-2 font-medium">Name</th>
@@ -159,21 +159,21 @@ export default async function SalesPage({ searchParams }: PageProps) {
                 const margin = Number(sale.salePrice) - Number(sale.costPrice);
                 const isMine = sale.employeeId === session.user.id;
                 return (
-                  <tr key={sale.id} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
-                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatDate(sale.saleDate)}</td>
-                    <td className="px-3 py-2 text-slate-700">{sale.passengerName}</td>
-                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{SERVICE_TYPE_LABEL[sale.serviceType]}</td>
-                    <td className="hidden px-3 py-2 text-slate-700 sm:table-cell print:table-cell">
+                  <tr key={sale.id} className="border-t border-slate-100 dark:border-slate-800 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700 dark:text-slate-300">{formatDate(sale.saleDate)}</td>
+                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{sale.passengerName}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700 dark:text-slate-300">{SERVICE_TYPE_LABEL[sale.serviceType]}</td>
+                    <td className="hidden px-3 py-2 text-slate-700 dark:text-slate-300 sm:table-cell print:table-cell">
                       {sale.serviceType === "AIR_TICKET"
                         ? `${sale.origin} → ${sale.destination} (${sale.airline})`
                         : formatServiceAttributes(sale.serviceType, sale.serviceAttributes) || "—"}
                     </td>
-                    {isOwner && <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.branch.name}</td>}
-                    {isOwner && <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.employee.name}</td>}
-                    <td className="px-3 py-2 whitespace-nowrap text-slate-700">{formatMoney(sale.salePrice.toString())}</td>
-                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 md:table-cell print:table-cell">{formatMoney(margin)}</td>
-                    <td className="hidden px-3 py-2 text-slate-700 lg:table-cell print:table-cell">{sale.paymentStatus}</td>
-                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 lg:table-cell print:table-cell">
+                    {isOwner && <td className="hidden px-3 py-2 text-slate-700 dark:text-slate-300 lg:table-cell print:table-cell">{sale.branch.name}</td>}
+                    {isOwner && <td className="hidden px-3 py-2 text-slate-700 dark:text-slate-300 lg:table-cell print:table-cell">{sale.employee.name}</td>}
+                    <td className="px-3 py-2 whitespace-nowrap text-slate-700 dark:text-slate-300">{formatMoney(sale.salePrice.toString())}</td>
+                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 dark:text-slate-300 md:table-cell print:table-cell">{formatMoney(margin)}</td>
+                    <td className="hidden px-3 py-2 text-slate-700 dark:text-slate-300 lg:table-cell print:table-cell">{sale.paymentStatus}</td>
+                    <td className="hidden px-3 py-2 whitespace-nowrap text-slate-700 dark:text-slate-300 lg:table-cell print:table-cell">
                       {formatMoney(Number(sale.salePrice) - Number(sale.amountPaid))}
                     </td>
                     <td className="px-3 py-2">
@@ -188,7 +188,7 @@ export default async function SalesPage({ searchParams }: PageProps) {
                     <td className="px-3 py-2 print:hidden">
                       {isMine && sale.status !== "VOID" && (
                         <div className="flex items-center gap-3">
-                          <Link href={`/sales/${sale.id}/edit`} className="text-sm font-medium text-blue-600 hover:underline">
+                          <Link href={`/sales/${sale.id}/edit`} className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
                             Edit
                           </Link>
                           <VoidSaleButton saleId={sale.id} />

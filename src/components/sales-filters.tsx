@@ -4,8 +4,8 @@ import { SERVICE_TYPE_OPTIONS } from "@/lib/service-types";
 type Option = { id: string; name: string };
 
 const inputClass =
-  "rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
-const labelClass = "mb-1 block text-xs font-medium text-slate-500";
+  "rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-100 dark:focus:ring-sky-900/40";
+const labelClass = "mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400";
 
 export type SalesFilterValues = {
   q?: string;
@@ -38,7 +38,7 @@ export function SalesFilters({
     <form
       method="get"
       action="/sales"
-      className="animate-fade-in-up print:hidden mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
+      className="animate-fade-in-up print:hidden mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm"
     >
       <div>
         <label className={labelClass} htmlFor="q">
@@ -152,7 +152,7 @@ export function SalesFilters({
           Apply
         </button>
         {hasActiveFilters && (
-          <Link href="/sales" className="text-sm text-slate-500 hover:text-blue-600 hover:underline">
+          <Link href="/sales" className="text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:underline">
             Clear
           </Link>
         )}

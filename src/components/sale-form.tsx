@@ -80,8 +80,8 @@ const emptyValues: SaleFormValues = {
 };
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
-const labelClass = "block text-sm font-medium mb-1 text-slate-700";
+  "w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-100 dark:focus:ring-sky-900/40";
+const labelClass = "block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300";
 
 function ServiceFieldInput({
   field,
@@ -291,15 +291,15 @@ export function SaleForm({
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       {error && (
-        <p className="animate-fade-in rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+        <p className="animate-fade-in rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-sm text-rose-700 dark:text-rose-300" role="alert">
           {error}
         </p>
       )}
 
       {mode === "create" && isAirTicket && (
-        <div className="rounded-xl border border-sky-100 bg-sky-50/40 p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-800">Import from document (optional)</h2>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="rounded-xl border border-sky-100 dark:border-slate-700 bg-sky-50/40 dark:bg-sky-950/20 p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Import from document (optional)</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Upload a GDS e-ticket/itinerary PDF, or paste the confirmation text. Extracted fields pre-fill the form
             below — nothing is saved until you review and click Save.
           </p>
@@ -335,12 +335,12 @@ export function SaleForm({
           </div>
 
           {extractError && (
-            <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
+            <p className="mt-3 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 px-3 py-2 text-sm text-rose-700 dark:text-rose-300" role="alert">
               {extractError}
             </p>
           )}
           {extractNotice && (
-            <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            <p className="mt-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
               {extractNotice}
             </p>
           )}
@@ -349,14 +349,14 @@ export function SaleForm({
             type="button"
             disabled={extracting}
             onClick={() => handleExtract(fileInputRef.current?.files?.[0] ?? null)}
-            className="mt-3 rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-medium text-sky-700 shadow-sm transition-colors hover:bg-sky-50 disabled:opacity-60"
+            className="mt-3 rounded-lg border border-sky-300 dark:border-sky-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-medium text-sky-700 dark:text-sky-300 shadow-sm transition-colors hover:bg-sky-50 dark:hover:bg-sky-950/40 disabled:opacity-60"
           >
             {extracting ? "Extracting…" : "Extract details"}
           </button>
         </div>
       )}
 
-      <div className="rounded-xl border border-sky-100 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className={labelClass} htmlFor="serviceType">
@@ -375,7 +375,7 @@ export function SaleForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-slate-500">Choose the service being sold — the fields below adjust to match.</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Choose the service being sold — the fields below adjust to match.</p>
         </div>
 
         {branches && (
@@ -384,7 +384,7 @@ export function SaleForm({
               Branch *
             </label>
             {branches.length === 0 ? (
-              <p className="text-sm text-slate-500">No active branches — add one before recording a sale.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No active branches — add one before recording a sale.</p>
             ) : (
               <select
                 id="branchId"
@@ -660,7 +660,7 @@ export function SaleForm({
             onChange={(e) => update("amountPaid", e.target.value)}
           />
           {values.salePrice && (
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs tabular-nums text-slate-500 dark:text-slate-400">
               Balance due: {formatMoney(Number(values.salePrice) - Number(values.amountPaid || 0))}
             </p>
           )}
@@ -736,7 +736,7 @@ export function SaleForm({
         <button
           type="button"
           onClick={() => router.push("/sales")}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 transition-colors hover:border-sky-200 hover:bg-sky-50"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-600 dark:text-slate-400 transition-colors hover:border-sky-200 dark:hover:border-sky-800 hover:bg-sky-50 dark:hover:bg-sky-950/40"
         >
           Cancel
         </button>

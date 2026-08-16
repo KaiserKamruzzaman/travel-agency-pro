@@ -45,7 +45,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
 
   if (trend.length === 0 || trend.every((t) => t.revenue === 0 && t.profit === 0)) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-sky-100 bg-white text-sm text-slate-500 shadow-sm">
+      <div className="flex h-64 items-center justify-center rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-500 dark:text-slate-400 shadow-sm">
         No sales in this period yet.
       </div>
     );
@@ -66,14 +66,14 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
   const activeLeftPct = hovered !== null ? ((hovered + 0.5) / trend.length) * 100 : 0;
 
   return (
-    <div className="rounded-xl border border-sky-100 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-4 text-sm">
-        <span className="flex items-center gap-1.5 text-slate-600">
+        <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
           <span className={`inline-block h-2.5 w-2.5 rounded-sm ${REVENUE_COLOR}`} />
           Revenue
         </span>
-        <span className="flex items-center gap-1.5 text-slate-600">
-          <span className={`inline-block h-2.5 w-2.5 rounded-sm ring-1 ring-slate-300 ${PROFIT_COLOR}`} />
+        <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+          <span className={`inline-block h-2.5 w-2.5 rounded-sm ring-1 ring-slate-300 dark:ring-slate-600 ${PROFIT_COLOR}`} />
           Profit
         </span>
       </div>
@@ -87,7 +87,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                 x2={VIEW_W - MARGIN.right}
                 y1={yFor(tick)}
                 y2={yFor(tick)}
-                className="stroke-slate-200"
+                className="stroke-slate-200 dark:stroke-slate-700"
                 strokeWidth={1}
               />
               <text
@@ -95,7 +95,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                 y={yFor(tick)}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="fill-slate-400 text-[11px]"
+                className="fill-slate-400 dark:fill-slate-500 text-[11px]"
               >
                 {formatCompactMoney(tick)}
               </text>
@@ -156,7 +156,7 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
                     x={bandX + bandWidth / 2}
                     y={VIEW_H - MARGIN.bottom + 16}
                     textAnchor="middle"
-                    className="fill-slate-400 text-[11px]"
+                    className="fill-slate-400 dark:fill-slate-500 text-[11px]"
                   >
                     {point.label}
                   </text>
@@ -169,28 +169,28 @@ export function ReportChart({ trend }: { trend: TrendPoint[] }) {
             x2={VIEW_W - MARGIN.right}
             y1={VIEW_H - MARGIN.bottom}
             y2={VIEW_H - MARGIN.bottom}
-            className="stroke-slate-300"
+            className="stroke-slate-300 dark:stroke-slate-600"
             strokeWidth={1}
           />
         </svg>
 
         {active && (
           <div
-            className="animate-fade-in pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-sky-100 bg-white px-3 py-2 text-xs shadow-lg shadow-sky-900/10"
+            className="animate-fade-in pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs shadow-lg shadow-sky-900/10"
             style={{ left: `${Math.min(88, Math.max(12, activeLeftPct))}%` }}
           >
-            <p className="mb-1 font-medium text-slate-700">{active.label}</p>
+            <p className="mb-1 font-medium text-slate-700 dark:text-slate-300">{active.label}</p>
             <p className="flex items-center gap-1.5">
               <span className={`inline-block h-2 w-3 rounded-sm ${REVENUE_COLOR}`} />
-              <span className="font-semibold text-slate-900">{formatMoney(active.revenue)}</span>
-              <span className="text-slate-500">Revenue</span>
+              <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{formatMoney(active.revenue)}</span>
+              <span className="text-slate-500 dark:text-slate-400">Revenue</span>
             </p>
             <p className="flex items-center gap-1.5">
               <span className={`inline-block h-2 w-3 rounded-sm ${PROFIT_COLOR}`} />
-              <span className="font-semibold text-slate-900">{formatMoney(active.profit)}</span>
-              <span className="text-slate-500">Profit</span>
+              <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">{formatMoney(active.profit)}</span>
+              <span className="text-slate-500 dark:text-slate-400">Profit</span>
             </p>
-            <p className="mt-1 text-slate-500">{active.tickets} tickets</p>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">{active.tickets} tickets</p>
           </div>
         )}
       </div>

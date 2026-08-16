@@ -17,7 +17,7 @@ export function EditedIndicator({
   if (!updatedAt) return null;
   return (
     <span
-      className="text-xs whitespace-nowrap text-amber-600"
+      className="text-xs whitespace-nowrap text-amber-600 dark:text-amber-400"
       title={updatedByName ? `Edited by ${updatedByName}` : undefined}
     >
       Edited {formatDate(updatedAt)}

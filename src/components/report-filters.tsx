@@ -5,14 +5,14 @@ import type { ReportPreset } from "@/lib/reports";
 type Option = { id: string; name: string };
 
 const inputClass =
-  "rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm text-slate-900 outline-none transition-colors focus:border-sky-400 focus:ring-2 focus:ring-sky-100";
-const labelClass = "mb-1 block text-xs font-medium text-slate-500";
+  "rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 text-sm text-slate-900 dark:text-slate-100 outline-none transition-colors focus:border-sky-400 dark:focus:border-sky-500 focus:ring-2 focus:ring-sky-100 dark:focus:ring-sky-900/40";
+const labelClass = "mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400";
 
 function tabClass(active: boolean) {
   return `rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
     active
       ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-sm shadow-sky-300/50"
-      : "border border-slate-200 text-slate-600 hover:border-sky-200 hover:bg-sky-50 hover:text-slate-900"
+      : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-sky-200 dark:hover:border-sky-800 hover:bg-sky-50 dark:hover:bg-sky-950/40 hover:text-slate-900 dark:hover:text-slate-100"
   }`;
 }
 
@@ -60,7 +60,7 @@ export function ReportFilters({
       <form
         method="get"
         action="/reports"
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 bg-white p-3 shadow-sm"
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm"
       >
         <input type="hidden" name="preset" value="custom" />
         <div>

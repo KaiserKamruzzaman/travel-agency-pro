@@ -68,8 +68,8 @@ export default async function ReportsPage({ searchParams }: PageProps) {
     <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
       <div className="animate-fade-in-up mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Reports</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">Reports</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             {formatDate(start)} – {formatDate(displayEnd)}
           </p>
         </div>
@@ -104,7 +104,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div>
-            <h3 className="mb-3 text-sm font-semibold text-slate-700">Top performers</h3>
+            <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Top performers</h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <SummaryCard label="Top branch" value={report.topBranch?.label ?? "—"} accent="sky" />
               <SummaryCard label="Top employee" value={report.topEmployee?.label ?? "—"} accent="sky" />
@@ -151,7 +151,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 function Section({ title, children, last = false }: { title: string; children: React.ReactNode; last?: boolean }) {
   return (
     <section className={last ? "" : "mb-8"}>
-      <h2 className="mb-4 text-base font-semibold text-slate-800">{title}</h2>
+      <h2 className="mb-4 text-base font-semibold text-slate-800 dark:text-slate-200">{title}</h2>
       <div className="space-y-4">{children}</div>
     </section>
   );
@@ -159,11 +159,11 @@ function Section({ title, children, last = false }: { title: string; children: R
 
 function StatStrip({ items }: { items: { label: string; value: string }[] }) {
   return (
-    <div className="flex flex-wrap gap-x-8 gap-y-3 rounded-xl border border-sky-100 bg-white px-4 py-3 shadow-sm">
+    <div className="flex flex-wrap gap-x-8 gap-y-3 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 shadow-sm">
       {items.map((item) => (
         <div key={item.label}>
-          <p className="text-xs font-medium text-slate-500">{item.label}</p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-800">{item.value}</p>
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{item.label}</p>
+          <p className="mt-0.5 text-sm font-semibold text-slate-800 dark:text-slate-200">{item.value}</p>
         </div>
       ))}
     </div>
@@ -175,13 +175,13 @@ type SummaryRow = { key: string; label: string; tickets: number; revenue: number
 function BreakdownTable({ title, rows }: { title: string; rows: SummaryRow[] }) {
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">{title}</h3>
+      <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">No sales in this period.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No sales in this period.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
           <table className="w-full text-left text-sm">
-            <thead className="bg-sky-50/60 text-slate-500">
+            <thead className="bg-sky-50/60 dark:bg-sky-950/30 text-slate-500 dark:text-slate-400">
               <tr>
                 <th className="px-3 py-2 font-medium">Name</th>
                 <th className="px-3 py-2 font-medium">Tickets</th>
@@ -191,11 +191,11 @@ function BreakdownTable({ title, rows }: { title: string; rows: SummaryRow[] }) 
             </thead>
             <tbody>
               {rows.map((row) => (
-                <tr key={row.key} className="border-t border-slate-100 transition-colors hover:bg-sky-50/40">
-                  <td className="px-3 py-2 text-slate-700">{row.label}</td>
-                  <td className="px-3 py-2 text-slate-700">{row.tickets}</td>
-                  <td className="px-3 py-2 text-slate-700">{formatMoney(row.revenue)}</td>
-                  <td className="px-3 py-2 text-slate-700">{formatMoney(row.profit)}</td>
+                <tr key={row.key} className="border-t border-slate-100 dark:border-slate-800 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+                  <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.label}</td>
+                  <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{row.tickets}</td>
+                  <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatMoney(row.revenue)}</td>
+                  <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{formatMoney(row.profit)}</td>
                 </tr>
               ))}
             </tbody>
@@ -218,15 +218,15 @@ const EXPENSE_CATEGORY_LABEL: Record<string, string> = {
 function ExpenseCategoryList({ rows }: { rows: { category: string; total: number }[] }) {
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">Expenses by category</h3>
+      <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Expenses by category</h3>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">No expenses in this period.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No expenses in this period.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-sky-100 bg-white text-sm shadow-sm">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm shadow-sm">
           {rows.map((row) => (
-            <li key={row.category} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40">
-              <span className="text-slate-700">{EXPENSE_CATEGORY_LABEL[row.category] ?? row.category}</span>
-              <span className="text-slate-500">{formatMoney(row.total)}</span>
+            <li key={row.category} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+              <span className="text-slate-700 dark:text-slate-300">{EXPENSE_CATEGORY_LABEL[row.category] ?? row.category}</span>
+              <span className="tabular-nums text-slate-500 dark:text-slate-400">{formatMoney(row.total)}</span>
             </li>
           ))}
         </ul>
@@ -250,16 +250,16 @@ function PaymentStatusList({
 }) {
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">Payment status</h3>
-      <div className="mb-3 rounded-xl border border-rose-100 bg-rose-50/60 px-3 py-2">
-        <p className="text-xs font-medium text-rose-600">Outstanding (partial + due)</p>
-        <p className="text-lg font-semibold text-rose-700">{formatMoney(outstanding)}</p>
+      <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Payment status</h3>
+      <div className="mb-3 rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50/60 dark:bg-rose-950/20 px-3 py-2">
+        <p className="text-xs font-medium text-rose-600 dark:text-rose-400">Outstanding (partial + due)</p>
+        <p className="text-lg font-semibold tabular-nums text-rose-700 dark:text-rose-300">{formatMoney(outstanding)}</p>
       </div>
-      <ul className="divide-y divide-slate-100 rounded-xl border border-sky-100 bg-white text-sm shadow-sm">
+      <ul className="divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm shadow-sm">
         {rows.map((row) => (
-          <li key={row.status} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40">
-            <span className="text-slate-700">{PAYMENT_STATUS_LABEL[row.status] ?? row.status}</span>
-            <span className="text-slate-500">
+          <li key={row.status} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+            <span className="text-slate-700 dark:text-slate-300">{PAYMENT_STATUS_LABEL[row.status] ?? row.status}</span>
+            <span className="tabular-nums text-slate-500 dark:text-slate-400">
               {row.tickets} tickets · {formatMoney(row.revenue)}
             </span>
           </li>
@@ -286,19 +286,19 @@ function CancellationList({
 }) {
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">Cancellations & refunds</h3>
-      <div className="mb-3 flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2">
+      <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Cancellations & refunds</h3>
+      <div className="mb-3 flex items-center justify-between rounded-xl border border-amber-100 dark:border-amber-900/50 bg-amber-50/60 dark:bg-amber-950/20 px-3 py-2">
         <div>
-          <p className="text-xs font-medium text-amber-700">Fell through this period</p>
-          <p className="text-lg font-semibold text-amber-800">{tickets} tickets</p>
+          <p className="text-xs font-medium text-amber-700 dark:text-amber-300">Fell through this period</p>
+          <p className="text-lg font-semibold tabular-nums text-amber-800 dark:text-amber-300">{tickets} tickets</p>
         </div>
-        <p className="text-sm font-semibold text-amber-800">{formatMoney(revenue)} lost</p>
+        <p className="text-sm font-semibold tabular-nums text-amber-800 dark:text-amber-300">{formatMoney(revenue)} lost</p>
       </div>
-      <ul className="divide-y divide-slate-100 rounded-xl border border-sky-100 bg-white text-sm shadow-sm">
+      <ul className="divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm shadow-sm">
         {rows.map((row) => (
-          <li key={row.status} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40">
-            <span className="text-slate-700">{CANCELLATION_STATUS_LABEL[row.status] ?? row.status}</span>
-            <span className="text-slate-500">
+          <li key={row.status} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+            <span className="text-slate-700 dark:text-slate-300">{CANCELLATION_STATUS_LABEL[row.status] ?? row.status}</span>
+            <span className="tabular-nums text-slate-500 dark:text-slate-400">
               {row.tickets} tickets · {formatMoney(row.revenue)}
             </span>
           </li>
@@ -311,15 +311,15 @@ function CancellationList({
 function TopList({ title, rows }: { title: string; rows: SummaryRow[] }) {
   return (
     <div>
-      <h3 className="mb-3 text-sm font-semibold text-slate-700">{title}</h3>
+      <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h3>
       {rows.length === 0 ? (
-        <p className="text-sm text-slate-500">No sales in this period.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">No sales in this period.</p>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-xl border border-sky-100 bg-white text-sm shadow-sm">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm shadow-sm">
           {rows.map((row) => (
-            <li key={row.key} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40">
-              <span className="text-slate-700">{row.label}</span>
-              <span className="text-slate-500">
+            <li key={row.key} className="flex items-center justify-between px-3 py-2 transition-colors hover:bg-sky-50/40 dark:hover:bg-sky-950/20">
+              <span className="text-slate-700 dark:text-slate-300">{row.label}</span>
+              <span className="text-slate-500 dark:text-slate-400">
                 {row.tickets} tickets · {formatMoney(row.revenue)}
               </span>
             </li>
