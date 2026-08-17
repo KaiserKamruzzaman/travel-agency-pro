@@ -62,6 +62,7 @@ export function ReportFilters({
       </div>
 
       <form
+        key={`${preset}-${toDateInputValue(start)}-${toDateInputValue(displayEnd)}-${branchId ?? ""}-${employeeId ?? ""}`}
         method="get"
         action="/reports"
         className="flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm"

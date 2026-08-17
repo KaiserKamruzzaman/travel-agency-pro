@@ -255,6 +255,15 @@ export function DateRangePicker({ fromName, toName, defaultFrom, defaultTo, plac
   const [from, setFrom] = useState<Date | null>(() => parseDateInputValue(defaultFrom ?? ""));
   const [to, setTo] = useState<Date | null>(() => parseDateInputValue(defaultTo ?? ""));
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
+
+  // This component isn't remounted by a from/to filter reset (e.g. the
+  // filter bar's "Clear" link) — Next.js re-renders the same instance with
+  // new defaultFrom/defaultTo props, so the lazy useState initializer above
+  // never reruns. Resync explicitly whenever the seed props change.
+  useEffect(() => {
+    setFrom(parseDateInputValue(defaultFrom ?? ""));
+    setTo(parseDateInputValue(defaultTo ?? ""));
+  }, [defaultFrom, defaultTo]);
   const [view, setView] = useState(() => {
     const seed = from ?? new Date();
     return { year: seed.getFullYear(), month: seed.getMonth() };

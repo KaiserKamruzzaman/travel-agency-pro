@@ -37,6 +37,7 @@ export function SalesFilters({
 }) {
   return (
     <form
+      key={JSON.stringify(values)}
       method="get"
       action="/sales"
       className="animate-fade-in-up print:hidden mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-sky-100 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm"
